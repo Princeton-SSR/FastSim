@@ -153,28 +153,29 @@ class Fish():
             self.caudal = 0.1     
 
     def bv_align(self, robots, rel_pos):
-        sensing_angle = 180 #deg
+        sensing_angle = 90 #deg
 
         if not robots:
             self.pect_l = 0
             self.pect_r = 0
-            self.caudal = 0.1
+            self.caudal = 0
             return
 
         left_count, right_count = self.environment.count_left_right(self.id, robots, rel_pos, sensing_angle)
-        print("left_count = " + str(left_count) + ", right_count = " + str(right_count))
+        # print("left_count = " + str(left_count) + ", right_count = " + str(right_count))
 
         if left_count > right_count:
             self.pect_l = 0
-            self.pect_r = 0.1*left_count
+            self.pect_r = 0.2*left_count
+            self.caudal = 0.2*left_count
         elif left_count < right_count:
-            self.pect_l = 0.1*right_count
+            self.pect_l = 0.2*right_count
             self.pect_r = 0
+            self.caudal = 0.2*right_count
         else: 
             self.pect_l = 0
             self.pect_r = 0
-
-        self.caudal = 0.1*(left_count+right_count)
+            self.caudal = 0
 
     def move(self, robots, rel_pos, dist, duration):
         """Decision-making based on neighboring robots and corresponding move

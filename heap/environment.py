@@ -254,28 +254,21 @@ class Environment():
         return False
     
     def count_left_right(self, source_id, robots, rel_pos, sensing_angle):
-        '''counts the number of agents visible to the left and right of the agent. Originally copied from see_circlers above
+        '''counts the number of agents visible to the left and right of the agent. Math copied from BV utils/pts_left_right
         '''
+        # self.pos as well as rel_pos are organized as [x,y,z,theta]
         phi = self.pos[source_id,3]
-        phi_xy = [math.cos(phi), math.sin(phi)]
-        mag_phi = np.linalg.norm(phi_xy)
-
         candidates = robots.copy()
-        left_count = 0
-        right_count = 0
-        for robot in candidates:
-            dot = np.dot(phi_xy, rel_pos[robot,:2])
-            if dot > 0:
-                d_robot = np.linalg.norm(rel_pos[robot,:2])
+        n = len(candidates)
 
-                # took out the abs from this line
-                angle = math.acos(dot / (mag_phi * d_robot))
-                print(angle)
-
-                if angle > 0 and (abs(angle)*180/math.pi) < (sensing_angle/2):
-                    right_count += 1
-                elif angle < 0 and (abs(angle)*180/math.pi) < (sensing_angle/2):
-                    left_count += 1
+        # assuming that phi is in radians and oriented starting at the positive x-axis. This assumption is now verified
+        perp = phi - (np.pi/2) # 90 degrees clockwise 
+        unit_perp = np.array([np.cos(perp), np.sin(perp)])
+        dot_perp = np.dot(np.full((n,2),unit_perp), rel_pos[list(candidates),:2].T) # dot product between the current orientation and each relative position vector
+        diag_perp = np.diagonal(dot_perp) # I'm not sure why this step is necessary, but the dot product returns the values along the diagonal of a large square matrix, this pulls them out into a 1D array
+        sign_perp = np.sign(diag_perp) # 1 means the light is to the right of the robot, -1 to the left, 0 directly ahead
+        right_count = len(sign_perp[sign_perp>0])
+        left_count = len(sign_perp[sign_perp<0])
 
         return left_count, right_count
 

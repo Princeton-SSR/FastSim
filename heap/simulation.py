@@ -53,25 +53,26 @@ Fish = getattr(importlib.import_module('fishfood.' + experiment_file), 'Fish')
 ## Feel free to loop over multiple simulations with different parameters! ##
 
 # Experimental Parameters
-no_fish = 10
+no_fish = 20
 simulation_time = 120 # [s]
 clock_freq = 2 # [Hz]
 clock_rate = 1/clock_freq
 
 # Fish Specifications
-v_range=3000 # visual range, [mm]
+v_range=1000 # visual range, [mm]
 w_blindspot=50 # width of blindspot, [mm]
 r_sphere=50 # radius of blocking sphere for occlusion, [mm]
 n_magnitude=0.1 # visual noise magnitude, [% of distance]
 fish_specs = (v_range, w_blindspot, r_sphere, n_magnitude)
 
 # Standard Tank
-arena_list = [1780, 1780, 1170]
+# arena_list = [1780, 1780, 1170]
+arena_list = [5000,5000,500]
 arena = np.array(arena_list)
 arena_center = arena / 2.0
 
 # Standard Surface Initialization
-initial_spread = 500
+initial_spread = 2000
 pos = np.zeros((no_fish, 4))
 vel = np.zeros((no_fish, 4))
 pos[:,:2] = initial_spread * (np.random.rand(no_fish, 2) - 0.5) + arena_center[:2] # x,y
@@ -97,6 +98,9 @@ t_start = time.time()
 simulation_steps = no_fish*simulation_time*clock_freq # overall
 steps = 0
 prog_incr = 0.1
+
+print("Initial positions [x,y,z,theta]")
+print(pos)
 
 while True:
     progress = steps/simulation_steps
