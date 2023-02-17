@@ -67,6 +67,7 @@ fish_specs = (v_range, w_blindspot, r_sphere, n_magnitude)
 
 # Standard Tank
 # arena_list = [1780, 1780, 1170]
+#TODO: Add circle as arena shape (cylinder)
 arena_list = [5000,5000,500]
 arena = np.array(arena_list)
 arena_center = arena / 2.0

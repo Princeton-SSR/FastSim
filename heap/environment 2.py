@@ -2,8 +2,8 @@
 """
 import math
 import random
-import numpy as np
-from scipy.spatial.distance import cdist
+import numpy as np 
+# from scipy.spatial.distance import cdist
 import sys
 U_LED_DX = 86 # [mm] leds x-distance on BlueBot
 U_LED_DZ = 86 # [mm] leds z-distance on BlueBot
@@ -16,6 +16,12 @@ class Environment():
 
     def __init__(self, pos, vel, fish_specs, arena):
         # Arguments
+        """
+        pos (np.array(num_fish, state_dim): np.array of states of each fish
+        
+        param vel: velocity of fish
+        type vel: 
+        """
         self.pos = pos # x, y, z, phi; [no_robots X 4]
         self.vel = vel # pos_dot
         self.v_range = fish_specs[0] # visual range, [mm]
@@ -47,6 +53,7 @@ class Environment():
     def init_tracking(self):
         """Initializes tracking
         """
+        # This is reshaping pos and vel into column vectors
         pos = np.reshape(self.pos, (1,self.no_robots*self.no_states))
         vel = np.reshape(self.vel, (1,self.no_robots*self.no_states))
         self.tracking = np.concatenate((pos,vel), axis=1)
@@ -84,6 +91,7 @@ class Environment():
         """Initializes fish positions and velocities
         """
         # Restrict initial positions to arena size
+        # This implies that each row is a fish 
         self.pos[:,0] = np.clip(self.pos[:,0], 0, self.arena_size[0])
         self.pos[:,1] = np.clip(self.pos[:,1], 0, self.arena_size[1])
         self.pos[:,2] = np.clip(self.pos[:,2], 0, self.arena_size[2])
@@ -95,7 +103,8 @@ class Environment():
         self.rel_pos = a - b # [4*no_robots X no_robots]
 
         # Initial distances
-        self.dist = cdist(self.pos[:,:3], self.pos[:,:3], 'euclidean') # without phi; [no_robots X no_robots]
+        #TODO: put this back as cdist when i figure out how to get scipy on this
+        self.dist = np.linalg.norm(self.pos[:,:3], self.pos[:,:3]) # without phi; [no_robots X no_robots]
 
     def update_states(self, source_id, pos, vel): # add noise
         """Updates a fish state and affected realtive positions and distances
@@ -252,26 +261,6 @@ class Environment():
                     return True
 
         return False
-    
-    def count_left_right(self, source_id, robots, rel_pos, sensing_angle):
-        '''counts the number of agents visible to the left and right of the agent. Math copied from BV utils/pts_left_right
-        '''
-        # self.pos as well as rel_pos are organized as [x,y,z,theta]
-        phi = self.pos[source_id,3]
-        candidates = robots.copy() # robots is list on indices without self (and checks for occlusions)
-        n = len(candidates)
-
-        # assuming that phi is in radians and oriented starting at the positive x-axis. This assumption is now verified
-        #TODO: Unit test this math to ensure we're properly counting whose left and right of the robot
-        perp = phi - (np.pi/2) # 90 degrees clockwise 
-        unit_perp = np.array([np.cos(perp), np.sin(perp)])
-        dot_perp = np.dot(np.full((n,2),unit_perp), rel_pos[list(candidates),:2].T) # dot product between the current orientation and each relative position vector
-        diag_perp = np.diagonal(dot_perp) # I'm not sure why this step is necessary, but the dot product returns the values along the diagonal of a large square matrix, this pulls them out into a 1D array
-        sign_perp = np.sign(diag_perp) # 1 means the light is to the right of the robot, -1 to the left, 0 directly ahead
-        right_count = len(sign_perp[sign_perp>0])
-        left_count = len(sign_perp[sign_perp<0])
-
-        return left_count, right_count
 
     def rot_global_to_robot(self, phi):
         """Rotate global coordinates to robot coordinates. Used before simulation of dynamics.
