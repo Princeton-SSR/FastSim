@@ -153,7 +153,7 @@ class Fish():
             self.caudal = 0.1     
 
     def bv_align(self, robots, rel_pos):
-        sensing_angle = 90 #deg
+        # sensing_angle = 90 #deg
 
         if not robots:
             self.pect_l = 0
@@ -161,7 +161,7 @@ class Fish():
             self.caudal = 0
             return
 
-        left_count, right_count = self.environment.count_left_right(self.id, robots, rel_pos, sensing_angle)
+        left_count, right_count = self.environment.count_left_right(self.id, robots, rel_pos)
         # print("left_count = " + str(left_count) + ", right_count = " + str(right_count))
 
         if left_count > right_count:

@@ -253,7 +253,7 @@ class Environment():
 
         return False
     
-    def count_left_right(self, source_id, robots, rel_pos, sensing_angle):
+    def count_left_right(self, source_id, robots, rel_pos):
         '''counts the number of agents visible to the left and right of the agent. Math copied from BV utils/pts_left_right
         '''
         # self.pos as well as rel_pos are organized as [x,y,z,theta]
