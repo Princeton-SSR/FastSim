@@ -81,11 +81,49 @@ def test_environment_count_left_right_2():
     assert left_count == 3
     assert right_count == 2
 
+# some corner cases, still same starting position
 def test_environment_count_left_right_3():
-    pass
+    # the number of fish
+    n = 6
+    # self is an environment
+    env = set_up_environment(n)
+    # set self position
+    env.pos[0] = np.array([0,0,100,np.pi/2])
+    # source_id is a number
+    source_id = 0
+    # robots is a list of indices (excluding self)
+    robots = np.arange(1,n)
+    # rel_pos is the relative positions as a list of [x,y] I think
+    # let self be at [0,0,np.pi/2]
+    rel_pos = np.array([[0,0,100,np.pi/2],[0,100,100,0],[0,-200,100,0],[1,-200,100,0],[0,1100,100,0],[0,900,500,0]])
+    # [0,0,1,0,0]
 
+    left_count, right_count = env.count_left_right(source_id, robots, rel_pos)
+    # print(right_count)
+
+    assert left_count == 0
+    assert right_count == 1
+
+# basic test first quadrant
 def test_environment_count_left_right_4():
-    pass
+    # the number of fish
+    n = 6
+    # self is an environment
+    env = set_up_environment(n)
+    # set self position
+    env.pos[0] = np.array([0,0,100,np.pi/4])
+    # source_id is a number
+    source_id = 0
+    # robots is a list of indices (excluding self)
+    robots = np.arange(1,n)
+    # rel_pos is the relative positions as a list of [x,y] I think
+    # let self be at [0,0,np.pi/2]
+    rel_pos = np.array([[0,0,100,np.pi/4],[100,100,100,0],[100,200,100,0],[-100,0,100,0],[-50,-200,100,0],[-1,100,100,0]])
+
+    left_count, right_count = env.count_left_right(source_id, robots, rel_pos)
+
+    assert left_count == 3
+    assert right_count == 1
 
 def test_environment_count_left_right_5():
     pass
