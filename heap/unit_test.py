@@ -228,7 +228,7 @@ def test_environment_count_left_right_9():
         
         return R @ vec
 
-    n = 10
+    n = 4
     env = set_up_environment(n)
     z = 100
     samp_theta = np.random.uniform(-2*np.pi, 2*np.pi)
@@ -245,30 +245,28 @@ def test_environment_count_left_right_9():
     rel_pos[1:, :2] = np.random.uniform(-50, 50, (n-1, 2))
     rel_pos[1:, 2] = z
     rel_pos[1:, 3] = np.random.uniform(-2*np.pi, 2*np.pi)
-
     # center everything
     rel_pos[:, :2] -= x_y_vec
 
     # angle we're gonna rotate by 
     angle_shift = np.pi/2  - samp_theta 
 
+    # this is essentially makes the 0th vector (source) the center 
     for i in range(n):
         rel_pos[i, :2] = rotate_about_angle(rel_pos[i, :2], angle_shift)
-    #env.pos[0][4] += angle_shift 
-    rel_pos[:, 4] += angle_shift 
-    x_shift = env.pos[0][0]
-    #env.pos[0][:2] -= env.pos[0][0]
-    rel_pos[:, 0] -= x_shift
+    
     acc_left = np.count_nonzero(rel_pos[:, 0] < 0)
     acc_right = np.count_nonzero(rel_pos[:, 0] > 0)
-    
-    assert env.pos[0][4] == np.pi/2
-    rel_pos[]
-    
-    # these are linear operations, to recenter everything about the x=0 axis and then orient s.t.
-   
-    
+
+    # undo all of these
+
+    for i in range(n):
+        rel_pos[i, :2] = rotate_about_angle(rel_pos[i, :2], -angle_shift)
+
+    rel_pos[:, :2] += x_y_vec
+
     left_count, right_count = env.count_left_right(source_id, robots, rel_pos)
+
     
     assert left_count == acc_left
     assert right_count == acc_right 
@@ -284,4 +282,5 @@ test_environment_count_left_right_5()
 test_environment_count_left_right_6()
 test_environment_count_left_right_7()
 test_environment_count_left_right_8()
+test_environment_count_left_right_9()
 print("passed count_left_right_tests")
