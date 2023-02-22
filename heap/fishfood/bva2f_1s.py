@@ -164,18 +164,28 @@ class Fish():
         left_count, right_count = self.environment.count_left_right(self.id, robots, rel_pos)
         # print("left_count = " + str(left_count) + ", right_count = " + str(right_count))
 
-        if left_count > right_count:
-            self.pect_l = 0
-            self.pect_r = 0.2*left_count
-            self.caudal = 0.2*left_count
-        elif left_count < right_count:
-            self.pect_l = 0.2*right_count
-            self.pect_r = 0
-            self.caudal = 0.2*right_count
-        else: 
+        if self.id == 0:
+            print("This got triggered")
             self.pect_l = 0
             self.pect_r = 0
             self.caudal = 0
+            # try this too
+            self.dorsal = 0
+
+        else:
+            if left_count > right_count:
+                self.pect_l = 0
+                self.pect_r = 0.2*left_count
+                self.caudal = 0.2*left_count
+            elif left_count < right_count:
+                self.pect_l = 0.2*right_count
+                self.pect_r = 0
+                self.caudal = 0.2*right_count
+            else: 
+                self.pect_l = 0
+                self.pect_r = 0
+                self.caudal = 0
+            
 
     def move(self, robots, rel_pos, dist, duration):
         """Decision-making based on neighboring robots and corresponding move

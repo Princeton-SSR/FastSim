@@ -267,7 +267,6 @@ def test_environment_count_left_right_9():
 
     left_count, right_count = env.count_left_right(source_id, robots, rel_pos)
 
-    
     assert left_count == acc_left
     assert right_count == acc_right 
 
