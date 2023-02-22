@@ -266,6 +266,7 @@ class Environment():
         perp = phi - (np.pi/2) # 90 degrees clockwise 
         unit_perp = np.array([np.cos(perp), np.sin(perp)])
         # print(unit_perp)
+        # This makes an n x 2 array of the dot product of the positions and the unit perp vector 
         dot_perp = np.dot(np.full((n,2),unit_perp), rel_pos[list(candidates),:2].T) # dot product between the current orientation and each relative position vector
         diag_perp = np.diagonal(dot_perp) # I'm not sure why this step is necessary, but the dot product returns the values along the diagonal of a large square matrix, this pulls them out into a 1D array
         # this step is necessary because the above functions would sometimes return values very close to zero, which we want to be interpretted as zero. This rounds them off, but all other values are far positive or negative, so the sign operator is unaffected

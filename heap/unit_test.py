@@ -6,6 +6,7 @@ from environment import *
 
 # breaking out the setup functions because its a lot
 # can probably reduce some of this and parameterize parts to differentiate trials
+
 def set_up_environment(n):
     # Experimental Parameters
     no_fish = n
@@ -182,14 +183,95 @@ def test_environment_count_left_right_7():
     # rel_pos is the relative positions as a list of [x,y] I think
     # let self be at [0,0,np.pi/2]
     rel_pos = np.array([[0,0,100,7*np.pi/4],[100,100,100,0],[100,200,100,0],[-100,0,100,0],[-50,-200,100,0],[-1,100,100,0]])
-
+    
+    
     left_count, right_count = env.count_left_right(source_id, robots, rel_pos)
 
     assert left_count == 3
     assert right_count == 2
 
+def test_environment_count_left_right_8():
+    # random samples left and right should work 
+    # num fish 
+    n = 10
+    env = set_up_environment(n)
+    z = 100
+    theta = np.pi / 2
+    y = 0
+    env.pos[0] = np.array([0,0,z,theta])
+    source_id = 0
 
+    robots = np.arange(1,n)
+    rel_pos = np.zeros((n-1, 4))
+    rel_pos[:,1] = y 
+    rel_pos[:,2] = z
+    rel_pos[:,3] = theta 
+    rel_pos = np.insert(rel_pos, 0, env.pos[0], axis=0)
+    for i in range(100):
+        rel_pos[1:, 0] = np.random.uniform(-50, 50, n-1)
+        
 
+        acc_left = np.count_nonzero(rel_pos[:, 0] < 0)
+        acc_right = np.count_nonzero(rel_pos[:, 0] > 0)
+        
+        left_count, right_count = env.count_left_right(source_id, robots, rel_pos)
+        
+        assert left_count == acc_left
+        assert right_count == acc_right 
+
+# This isn't designed for specific edge cases, but should work very generally 
+def test_environment_count_left_right_9():
+
+    def rotate_about_angle(vec, angle_in_radians):
+        R = np.array([[np.cos(angle_in_radians), -np.sin(angle_in_radians)],
+                     [np.sin(angle_in_radians),  np.cos(angle_in_radians)]])
+        
+        return R @ vec
+
+    n = 10
+    env = set_up_environment(n)
+    z = 100
+    samp_theta = np.random.uniform(-2*np.pi, 2*np.pi)
+    x_y_vec = np.random.uniform(-50, 50, 2)
+    env.pos[0][:2] = x_y_vec
+    env.pos[0][2] = z
+    env.pos[0][3] = samp_theta
+    source_id = 0
+
+    robots = np.arange(1,n)
+    rel_pos = np.zeros((n-1, 4))
+    rel_pos = np.insert(rel_pos, 0, env.pos[0], axis=0)
+    #for i in range(100):
+    rel_pos[1:, :2] = np.random.uniform(-50, 50, (n-1, 2))
+    rel_pos[1:, 2] = z
+    rel_pos[1:, 3] = np.random.uniform(-2*np.pi, 2*np.pi)
+
+    # center everything
+    rel_pos[:, :2] -= x_y_vec
+
+    # angle we're gonna rotate by 
+    angle_shift = np.pi/2  - samp_theta 
+
+    for i in range(n):
+        rel_pos[i, :2] = rotate_about_angle(rel_pos[i, :2], angle_shift)
+    #env.pos[0][4] += angle_shift 
+    rel_pos[:, 4] += angle_shift 
+    x_shift = env.pos[0][0]
+    #env.pos[0][:2] -= env.pos[0][0]
+    rel_pos[:, 0] -= x_shift
+    acc_left = np.count_nonzero(rel_pos[:, 0] < 0)
+    acc_right = np.count_nonzero(rel_pos[:, 0] > 0)
+    
+    assert env.pos[0][4] == np.pi/2
+    rel_pos[]
+    
+    # these are linear operations, to recenter everything about the x=0 axis and then orient s.t.
+   
+    
+    left_count, right_count = env.count_left_right(source_id, robots, rel_pos)
+    
+    assert left_count == acc_left
+    assert right_count == acc_right 
 
 ######### main #################
 
@@ -201,4 +283,5 @@ test_environment_count_left_right_4()
 test_environment_count_left_right_5()
 test_environment_count_left_right_6()
 test_environment_count_left_right_7()
+test_environment_count_left_right_8()
 print("passed count_left_right_tests")
