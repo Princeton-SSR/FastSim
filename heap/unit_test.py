@@ -230,7 +230,7 @@ def test_environment_count_left_right_9():
         
         return R @ vec
 
-    n = 4
+    n = 20
     env = set_up_environment(n)
     z = 100
     samp_theta = np.random.uniform(-2*np.pi, 2*np.pi)
@@ -258,6 +258,7 @@ def test_environment_count_left_right_9():
         rel_pos[i, :2] = rotate_about_angle(rel_pos[i, :2], angle_shift)
     
     print(rel_pos)
+    rel_pos[0, 3] += angle_shift
     acc_left = np.count_nonzero(rel_pos[:, 0] < 0)
     acc_right = np.count_nonzero(rel_pos[:, 0] > 0)
 
@@ -267,7 +268,7 @@ def test_environment_count_left_right_9():
         rel_pos[i, :2] = rotate_about_angle(rel_pos[i, :2], -angle_shift)
 
     rel_pos[:, :2] += x_y_vec
-
+    rel_pos[0, 3] -= angle_shift
     left_count, right_count = env.count_left_right(source_id, robots, rel_pos)
 
     assert left_count == acc_left
