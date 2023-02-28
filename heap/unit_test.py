@@ -209,13 +209,15 @@ def test_environment_count_left_right_8():
     rel_pos = np.insert(rel_pos, 0, env.pos[0], axis=0)
     for i in range(100):
         rel_pos[1:, 0] = np.random.uniform(-50, 50, n-1)
+        # print(rel_pos[:,0])
         
 
         acc_left = np.count_nonzero(rel_pos[:, 0] < 0)
         acc_right = np.count_nonzero(rel_pos[:, 0] > 0)
         
         left_count, right_count = env.count_left_right(source_id, robots, rel_pos)
-        
+        # if(acc_left != left_count or acc_right != right_count):
+        #     print(str(acc_left) + ", " + str(left_count) + "; " + str(acc_right) + ", " + str(right_count))
         assert left_count == acc_left
         assert right_count == acc_right 
 
@@ -255,6 +257,7 @@ def test_environment_count_left_right_9():
     for i in range(n):
         rel_pos[i, :2] = rotate_about_angle(rel_pos[i, :2], angle_shift)
     
+    print(rel_pos)
     acc_left = np.count_nonzero(rel_pos[:, 0] < 0)
     acc_right = np.count_nonzero(rel_pos[:, 0] > 0)
 
