@@ -344,6 +344,7 @@ def test_bv_align_move_1():
 
     target_pos, vel = test_fish.move(robots, rel_pos, dist=0, duration=d)
 
+    print(env.pos[0])
     print(target_pos)
 
     # assert the fish has turned to the right (from pi/2) and moved some amount to the right (positive x and y)
