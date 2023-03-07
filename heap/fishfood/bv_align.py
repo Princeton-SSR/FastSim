@@ -165,12 +165,12 @@ class Fish():
         # print("left_count = " + str(left_count) + ", right_count = " + str(right_count))
 
         if left_count > right_count:
-            self.pect_l = 0
-            self.pect_r = 0.2*left_count
+            self.pect_l = 0.2*left_count
+            self.pect_r = 0
             self.caudal = 0.2*left_count
         elif left_count < right_count:
-            self.pect_l = 0.2*right_count
-            self.pect_r = 0
+            self.pect_l = 0
+            self.pect_r = 0.2*right_count
             self.caudal = 0.2*right_count
         else: 
             self.pect_l = 0
