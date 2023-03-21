@@ -153,9 +153,16 @@ class Fish():
             self.caudal = 0.1     
 
     def bv_align(self, robots, rel_pos):
+<<<<<<< HEAD
 
         # attract = 1 or 0
         # speed_up  =1 or 0
+=======
+        # attract = 1 or 0
+        # speed_up = 1 or 0
+
+
+>>>>>>> 70a7a505b4c74c70027c238de1ef00e22df92b34
         # sensing_angle = 90 #deg
 
         if not robots:
@@ -169,10 +176,17 @@ class Fish():
 
         if left_count > right_count:
             self.pect_l = 0.2*left_count # attract
+<<<<<<< HEAD
             self.pect_r = 0             # attract 
             self.caudal = 0.2*left_count # speed_up
         elif left_count < right_count:
             self.pect_l = 0 # attract
+=======
+            self.pect_r = 0              # attract
+            self.caudal = 0.2*left_count # speed_up
+        elif left_count < right_count:
+            self.pect_l = 0              # attract
+>>>>>>> 70a7a505b4c74c70027c238de1ef00e22df92b34
             self.pect_r = 0.2*right_count # attract
             self.caudal = 0.2*right_count # speed up
         else: 
