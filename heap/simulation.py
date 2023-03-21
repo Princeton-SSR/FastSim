@@ -54,14 +54,15 @@ Fish = getattr(importlib.import_module('fishfood.' + experiment_file), 'Fish')
 
 # Experimental Parameters
 #TODO: change this back to 20 
-no_fish = 2
-simulation_time = 120 # [s]
+no_fish = 20
+simulation_time = 400 # [s]
 clock_freq = 2 # [Hz]
 clock_rate = 1/clock_freq
 
 # Fish Specifications
 v_range=1000 # visual range, [mm]
-w_blindspot=50 # width of blindspot, [mm]
+# w_blindspot=50 # width of blindspot, [mm]
+w_blindspot=3141 # TODO: figure out mapping mm to degrees
 r_sphere=50 # radius of blocking sphere for occlusion, [mm]
 n_magnitude=0.1 # visual noise magnitude, [% of distance]
 fish_specs = (v_range, w_blindspot, r_sphere, n_magnitude)

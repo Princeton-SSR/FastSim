@@ -31,8 +31,10 @@ class Fish():
     def run(self, duration):
         """(1) Get neighbors from environment, (2) move accordingly, (3) update your state in environment
         """
+        attract = 1
+        speed_up = 1
         robots, rel_pos, dist, leds = self.environment.get_robots(self.id)
-        target_pos, vel = self.move(robots, rel_pos, dist, duration)
+        target_pos, vel = self.move(robots, rel_pos, dist, duration, attract, speed_up)
         self.environment.update_states(self.id, target_pos, vel)
 
     def lj_force(self, robots, rel_pos, dist, r_target):
@@ -183,8 +185,8 @@ class Fish():
     def bv_align_paramterized(self, robots, rel_pos, attract, speed_up):
         
         # attract and speed_up must take binary values of 0 or 1 
-        assert (attract == 0 or 1)
-        assert (speed_up == 0 or 1)
+        assert (attract == 0 or attract == 1)
+        assert (speed_up == 0 or speed_up == 1)
         
         if not robots:
             self.pect_l = 0
@@ -212,13 +214,13 @@ class Fish():
         
         # speed away 
         if attract == 0 and speed_up == 1:
-            if left_count < right_count:
-                self.pect_l = 0.2*left_count # attract
-                self.pect_r = 0             # attract 
-                self.caudal = 0.2*left_count # speed_up
-            elif left_count > right_count:
+            if left_count > right_count:
                 self.pect_l = 0 # attract
-                self.pect_r = 0.2*right_count # attract
+                self.pect_r = 0.2*left_count # attract
+                self.caudal = 0.2*left_count # speed_up
+            elif left_count < right_count:
+                self.pect_l = 0.2*right_count # attract
+                self.pect_r = 0
                 self.caudal = 0.2*right_count # speed up
             else: 
                 self.pect_l = 0
@@ -234,7 +236,7 @@ class Fish():
             elif left_count < right_count:
                 self.pect_l = 0 # attract
                 self.pect_r = 0.2*right_count # attract
-                self.caudal = -0.2*right_count # speed up
+                self.caudal = 1-0.2*right_count # speed up
             else: 
                 self.pect_l = 0
                 self.pect_r = 0
@@ -242,40 +244,20 @@ class Fish():
 
         # slow away 
         if attract == 0 and speed_up == 0:
-            if left_count < right_count:
-                self.pect_l = 0.2*left_count # attract
-                self.pect_r = 0             # attract 
-                self.caudal = -0.2*left_count # speed_up
-            elif left_count > right_count:
+            if left_count > right_count:
                 self.pect_l = 0 # attract
-                self.pect_r = 0.2*right_count # attract
-                self.caudal = -0.2*right_count # speed up
+                self.pect_r = 0.2*left_count # attract
+                self.caudal = -0.2*left_count # speed_up
+            elif left_count < right_count:
+                self.pect_l = 0.2*right_count # attract
+                self.pect_r = 0
+                self.caudal = 1-0.2*right_count # speed up
             else: 
                 self.pect_l = 0
                 self.pect_r = 0
                 self.caudal = 0
 
-
-    def move(self, robots, rel_pos, dist, duration):
-        """Decision-making based on neighboring robots and corresponding move
-        """
-        if not robots: # no robots, continue with ctrl from last step
-            target_pos, self_vel = self.dynamics.simulate_move(self.id, duration)
-            return (target_pos, self_vel)
-
-        # self.circling(robots, rel_pos)
-        self.bv_align(robots, rel_pos)
-        self.depth_ctrl_psensor(self.target_depth)
-
-        self.dynamics.update_ctrl(self.dorsal, self.caudal, self.pect_r, self.pect_l)
-
-        target_pos, self_vel = self.dynamics.simulate_move(self.id, duration)
-
-        return (target_pos, self_vel)
-    
-        # TODO: figure out which pieces are unnecessary for this algorithm, and set up way to comment them out for calculating relative loop iteration time
-
-    def move2(self, robots, rel_pos, dist, duration, attract, speed_up):
+    def move(self, robots, rel_pos, dist, duration, attract, speed_up):
         """Decision-making based on neighboring robots and corresponding move
         """
         if not robots: # no robots, continue with ctrl from last step
