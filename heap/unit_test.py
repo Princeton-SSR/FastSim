@@ -318,6 +318,7 @@ def set_up_sim(n, fid):
     return test_fish, environment, dynamics
 
 def test_bv_align_move_1():
+    #NOTE: Pectoral left moves you to the left, pectoral right moves you to the right 
     # initialize trivial set of agent rel_pos
     # run a single iteration of move
     # there is some randomness to the step (I think) so we will assert that the agent moved in generally the correct direction, maybe with some bounds

@@ -153,6 +153,9 @@ class Fish():
             self.caudal = 0.1     
 
     def bv_align(self, robots, rel_pos):
+
+        # attract = 1 or 0
+        # speed_up  =1 or 0
         # sensing_angle = 90 #deg
 
         if not robots:
@@ -165,17 +168,93 @@ class Fish():
         # print("left_count = " + str(left_count) + ", right_count = " + str(right_count))
 
         if left_count > right_count:
-            self.pect_l = 0.2*left_count
-            self.pect_r = 0
-            self.caudal = 0.2*left_count
+            self.pect_l = 0.2*left_count # attract
+            self.pect_r = 0             # attract 
+            self.caudal = 0.2*left_count # speed_up
         elif left_count < right_count:
-            self.pect_l = 0
-            self.pect_r = 0.2*right_count
-            self.caudal = 0.2*right_count
+            self.pect_l = 0 # attract
+            self.pect_r = 0.2*right_count # attract
+            self.caudal = 0.2*right_count # speed up
         else: 
             self.pect_l = 0
             self.pect_r = 0
             self.caudal = 0
+
+    def bv_align_paramterized(self, robots, rel_pos, attract, speed_up):
+        
+        # attract and speed_up must take binary values of 0 or 1 
+        assert (attract == 0 or 1)
+        assert (speed_up == 0 or 1)
+        
+        if not robots:
+            self.pect_l = 0
+            self.pect_r = 0
+            self.caudal = 0
+            return
+
+        left_count, right_count = self.environment.count_left_right(self.id, robots, rel_pos)
+        # print("left_count = " + str(left_count) + ", right_count = " + str(right_count))
+
+        # speed toward
+        if attract == 1 and speed_up == 1:
+            if left_count > right_count:
+                self.pect_l = 0.2*left_count # attract
+                self.pect_r = 0             # attract 
+                self.caudal = 0.2*left_count # speed_up
+            elif left_count < right_count:
+                self.pect_l = 0 # attract
+                self.pect_r = 0.2*right_count # attract
+                self.caudal = 0.2*right_count # speed up
+            else: 
+                self.pect_l = 0
+                self.pect_r = 0
+                self.caudal = 0
+        
+        # speed away 
+        if attract == 0 and speed_up == 1:
+            if left_count < right_count:
+                self.pect_l = 0.2*left_count # attract
+                self.pect_r = 0             # attract 
+                self.caudal = 0.2*left_count # speed_up
+            elif left_count > right_count:
+                self.pect_l = 0 # attract
+                self.pect_r = 0.2*right_count # attract
+                self.caudal = 0.2*right_count # speed up
+            else: 
+                self.pect_l = 0
+                self.pect_r = 0
+                self.caudal = 0
+        
+        # slow toward
+        if attract == 1 and speed_up == 0:
+            if left_count > right_count:
+                self.pect_l = 0.2*left_count # attract
+                self.pect_r = 0             # attract 
+                self.caudal = -0.2*left_count # speed_up
+            elif left_count < right_count:
+                self.pect_l = 0 # attract
+                self.pect_r = 0.2*right_count # attract
+                self.caudal = -0.2*right_count # speed up
+            else: 
+                self.pect_l = 0
+                self.pect_r = 0
+                self.caudal = 0
+
+        # slow away 
+        if attract == 0 and speed_up == 0:
+            if left_count < right_count:
+                self.pect_l = 0.2*left_count # attract
+                self.pect_r = 0             # attract 
+                self.caudal = -0.2*left_count # speed_up
+            elif left_count > right_count:
+                self.pect_l = 0 # attract
+                self.pect_r = 0.2*right_count # attract
+                self.caudal = -0.2*right_count # speed up
+            else: 
+                self.pect_l = 0
+                self.pect_r = 0
+                self.caudal = 0
+
 
     def move(self, robots, rel_pos, dist, duration):
         """Decision-making based on neighboring robots and corresponding move
@@ -195,3 +274,24 @@ class Fish():
         return (target_pos, self_vel)
     
         # TODO: figure out which pieces are unnecessary for this algorithm, and set up way to comment them out for calculating relative loop iteration time
+
+    def move(self, robots, rel_pos, dist, duration, attract, speed_up):
+        """Decision-making based on neighboring robots and corresponding move
+        """
+        if not robots: # no robots, continue with ctrl from last step
+            target_pos, self_vel = self.dynamics.simulate_move(self.id, duration)
+            return (target_pos, self_vel)
+
+        # self.circling(robots, rel_pos)
+        self.bv_align_paramterized(robots, rel_pos, attract, speed_up)
+        self.depth_ctrl_psensor(self.target_depth)
+
+        self.dynamics.update_ctrl(self.dorsal, self.caudal, self.pect_r, self.pect_l)
+
+        target_pos, self_vel = self.dynamics.simulate_move(self.id, duration)
+
+        return (target_pos, self_vel)
+    
+        # TODO: figure out which pieces are unnecessary for this algorithm, and set up way to comment them out for calculating relative loop iteration time
+
+    
