@@ -278,7 +278,7 @@ class TestBVMethods(unittest.TestCase):
         
         # robots, rel_pos, dist, leds = test_fish.environment.get_robots(source_id=0)
 
-        target_pos, vel = test_fish.move(robots, rel_pos, dist=0, duration=d)
+        target_pos, vel = test_fish.move(robots, rel_pos, dist=0, duration=d, attract=1, speed_up=1)
 
         print(env.pos[0])
         print(target_pos)
@@ -288,7 +288,77 @@ class TestBVMethods(unittest.TestCase):
         self.assertTrue(target_pos[1] > 0)
         self.assertTrue(target_pos[3] < np.pi/2)
 
+    def test_bv_align_move_2(self):
+        #NOTE: Pectoral left moves you to the left, pectoral right moves you to the right 
+        # initialize trivial set of agent rel_pos
+        # run a single iteration of move
+        # there is some randomness to the step (I think) so we will assert that the agent moved in generally the correct direction, maybe with some bounds
+        # can copy this test for more complicated positions or corner cases
 
+        # PARAMETERS
+        # num fish
+        n=2
+        # duration
+        d = 1
+        # source_id is a number
+        source_id = 0
+
+        # set up sim
+        test_fish, env, dyn = set_up_sim(n, source_id)
+
+        # set self position
+        env.pos = np.array([[0,0,100,np.pi/2],[100,100,100,np.pi/2]])
+        # robots is a list of indices (excluding self)
+        robots = np.arange(1,n)
+        # rel_pos is the relative positions as a list of [x,y,z,theta]
+        # let self be at [0,0,np.pi/2]
+        rel_pos = np.array([[0,0,0,0],[100,100,0,0]])
+        
+        target_pos, vel = test_fish.move(robots, rel_pos, dist=0, duration=d, attract=0, speed_up=1)
+
+        #print(env.pos[0])
+    # print(target_pos)
+
+        # assert the fish has turned to the left (from pi/2) and moved some amount to the left and up (negative x and positive y)
+        self.assertTrue(target_pos[0] > 0)
+        self.assertTrue(target_pos[1] > 0)
+        self.assertTrue(target_pos[3] < np.pi/2)
+
+    def test_bv_align_move_3(self):
+        #NOTE: Pectoral left moves you to the left, pectoral right moves you to the right 
+        # initialize trivial set of agent rel_pos
+        # run a single iteration of move
+        # there is some randomness to the step (I think) so we will assert that the agent moved in generally the correct direction, maybe with some bounds
+        # can copy this test for more complicated positions or corner cases
+
+        # PARAMETERS
+        # num fish
+        n=2
+        # duration
+        d = 1
+        # source_id is a number
+        source_id = 0
+
+        # set up sim
+        test_fish, env, dyn = set_up_sim(n, source_id)
+
+        # set self position
+        env.pos = np.array([[0,0,100,np.pi/2],[100,100,100,np.pi/2]])
+        # robots is a list of indices (excluding self)
+        robots = np.arange(1,n)
+        # rel_pos is the relative positions as a list of [x,y,z,theta]
+        # let self be at [0,0,np.pi/2]
+        rel_pos = np.array([[0,0,0,0],[100,100,0,0]])
+        
+        target_pos, vel = test_fish.move(robots, rel_pos, dist=0, duration=d, attract=0, speed_up=0)
+
+        print(env.pos[0])
+        print(target_pos)
+
+        # assert the fish has turned to the left (from pi/2) and moved some amount to the left and up (negative x and positive y)
+        self.assertTrue(target_pos[0] > 0)
+        self.assertTrue(target_pos[1] > 0)
+        self.assertTrue(target_pos[3] < np.pi/2)
 
 
 if __name__ == '__main__':

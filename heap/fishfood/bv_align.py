@@ -233,11 +233,11 @@ class Fish():
             if left_count > right_count:
                 self.pect_l = influence*left_count # attract
                 self.pect_r = 0             # attract 
-                self.caudal = 1-0.2*left_count # speed_up
+                self.caudal = 1-influence*left_count # speed_up
             elif left_count < right_count:
                 self.pect_l = 0 # attract
-                self.pect_r = 0.2*right_count # attract
-                self.caudal = 1-0.2*right_count # speed up
+                self.pect_r = influence*right_count # attract
+                self.caudal = 1-influence*right_count # speed up
             else: 
                 self.pect_l = 0
                 self.pect_r = 0
@@ -248,10 +248,10 @@ class Fish():
         if attract == 0 and speed_up == 0:
             if left_count > right_count:
                 self.pect_l = 0 # attract
-                self.pect_r = 0.2*left_count # attract
+                self.pect_r = influence*left_count # attract
                 self.caudal = 1-influence*left_count # speed_up
             elif left_count < right_count:
-                self.pect_l = 0.2*right_count # attract
+                self.pect_l = influence*right_count # attract
                 self.pect_r = 0
                 self.caudal = 1-influence*right_count # speed up
             else: 
