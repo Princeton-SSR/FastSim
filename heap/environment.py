@@ -211,7 +211,13 @@ class Environment():
                 coord_verified = rel_pos[verified,:3]
 
                 theta_min = math.atan(self.r_sphere / d_verified)
-                theta = abs(math.acos(np.dot(coord_robot, coord_verified) / (d_robot * d_verified)))
+                # TODO: double check this. I added this line because occassionaly the value of temp is 1.0000000000000002, which excedes the domain of acos of [-1,1].
+                # I think this is OK, but might cause an issue down the line
+                temp = np.dot(coord_robot, coord_verified) / (d_robot * d_verified)
+                if(temp > 1.):
+                    # print(temp)
+                    temp = 1
+                theta = abs(math.acos(temp))
 
                 if theta < theta_min:
                     occluded = True
