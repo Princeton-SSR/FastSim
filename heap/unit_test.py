@@ -7,6 +7,7 @@ import fishfood.bv_align as bv
 from dynamics import Dynamics
 from unit_test_utils import *
 
+# @unittest.skip("test")
 class TestEnvironmentMethods(unittest.TestCase):
 
     # basic test of two robots to the right
@@ -320,9 +321,9 @@ class TestBVMethods(unittest.TestCase):
     # print(target_pos)
 
         # assert the fish has turned to the left (from pi/2) and moved some amount to the left and up (negative x and positive y)
-        self.assertTrue(target_pos[0] > 0)
+        self.assertTrue(target_pos[0] < 0)
         self.assertTrue(target_pos[1] > 0)
-        self.assertTrue(target_pos[3] < np.pi/2)
+        self.assertTrue(target_pos[3] > np.pi/2)
 
     def test_bv_align_move_3(self):
         #NOTE: Pectoral left moves you to the left, pectoral right moves you to the right 
@@ -356,9 +357,9 @@ class TestBVMethods(unittest.TestCase):
         print(target_pos)
 
         # assert the fish has turned to the left (from pi/2) and moved some amount to the left and up (negative x and positive y)
-        self.assertTrue(target_pos[0] > 0)
+        self.assertTrue(target_pos[0] < 0)
         self.assertTrue(target_pos[1] > 0)
-        self.assertTrue(target_pos[3] < np.pi/2)
+        self.assertTrue(target_pos[3] > np.pi/2)
 
 
 if __name__ == '__main__':
