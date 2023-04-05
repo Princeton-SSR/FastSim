@@ -95,7 +95,11 @@ class Dynamics():
             #TODO: Double check all these, but basically vy moves you laterally and vx forward 
             #TODO: verify in a test case that positive vy_dot moves you left and negative vy_dot moves you right 
             vx_dot = 1/self.m_robot * (self.F_caud - sin(self.pect_angle)*self.F_PL - sin(self.pect_angle)*self.F_PR - 1/2*self.rho*self.C_dx*self.A_x*np.sign(x_dot)*x_dot**2)
+
+            # This is going forward      
             vy_dot = 1/self.m_robot * (cos(self.pect_angle)*self.F_PL - cos(self.pect_angle)*self.F_PR - 1/2*self.rho*self.C_dy*self.A_y*np.sign(y_dot)*y_dot**2)
+
+            # This is going up 
             vz_dot = 1/self.m_robot * (self.F_dors - self.F_buoy - 1/2*self.rho*self.C_dz*self.A_z*np.sign(z_dot)*z_dot**2)
             vphi_dot = 1/self.I_robot * (self.pect_dist*cos(self.pect_angle)*self.F_PL - self.pect_dist*cos(self.pect_angle)*self.F_PR - 1/2*self.rho*self.C_dphi*self.A_phi*np.sign(phi_dot)*(self.l_robot/6*phi_dot)**2)
 
