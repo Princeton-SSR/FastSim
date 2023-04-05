@@ -10,11 +10,13 @@ class Fish():
     """Bluebot instance
     """
     
-    def __init__(self, my_id, dynamics, environment):
+    def __init__(self, my_id, dynamics, environment, attract, speed_up):
         # Arguments
         self.id = my_id
         self.dynamics = dynamics
         self.environment = environment
+        self.attract = attract
+        self.speed_up = speed_up
 
         # Bluebot features
         self.body_length = 130
