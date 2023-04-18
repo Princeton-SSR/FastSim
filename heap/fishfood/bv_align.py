@@ -185,8 +185,6 @@ class Fish():
             self.caudal = 0
 
     def bv_align_paramterized(self, robots, rel_pos, attract, speed_up, influence=.2):
-        
-        
         # attract and speed_up must take binary values of 0 or 1 
         assert (attract == 0 or attract == 1)
         assert (speed_up == 0 or speed_up == 1)
@@ -269,7 +267,8 @@ class Fish():
             return (target_pos, self_vel)
 
         # self.circling(robots, rel_pos)
-        self.bv_align_paramterized(robots, rel_pos, attract, speed_up)
+        new_robots = self.environment.angle_threshold(robots, rel_pos, self.sensing_angle)
+        self.bv_align_paramterized(new_robots, rel_pos, attract, speed_up)
         self.depth_ctrl_psensor(self.target_depth)
 
         self.dynamics.update_ctrl(self.dorsal, self.caudal, self.pect_r, self.pect_l)

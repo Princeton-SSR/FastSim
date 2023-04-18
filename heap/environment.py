@@ -242,20 +242,20 @@ class Environment():
     def see_circlers(self, source_id, robots, rel_pos, sensing_angle):
         '''For circle formation
         '''
-        phi = self.pos[source_id,3]
-        phi_xy = [math.cos(phi), math.sin(phi)]
-        mag_phi = np.linalg.norm(phi_xy)
+        phi = self.pos[source_id,3]  # get the angle of the agent
+        phi_xy = [math.cos(phi), math.sin(phi)]  # get the x and y components of the angle
+        mag_phi = np.linalg.norm(phi_xy)  # get the magnitude of the angle
 
         candidates = robots.copy()
-        for robot in candidates:
-            dot = np.dot(phi_xy, rel_pos[robot,:2])
-            if dot > 0:
-                d_robot = np.linalg.norm(rel_pos[robot,:2])
+        for robot in candidates:  # loop through each robot
+            dot = np.dot(phi_xy, rel_pos[robot,:2])  # get the dot product of the angle and the relative position of the robot
+            if dot > 0:  # if the dot product is positive, the robot is in front of the agent
+                d_robot = np.linalg.norm(rel_pos[robot,:2])  # get the distance to the robot
 
-                angle = abs(math.acos(dot / (mag_phi * d_robot)))
+                angle = abs(math.acos(dot / (mag_phi * d_robot)))  # get the angle between the agent and the robot
 
-                if (angle*180/math.pi) < (sensing_angle/2):
-                    return True
+                if (angle*180/math.pi) < (sensing_angle/2):  # if the angle is less than the sensing angle, the agent can see the robot
+                    return True  # return true if the agent can see a robot
 
         return False
     
@@ -283,6 +283,30 @@ class Environment():
         left_count = len(sign_perp[sign_perp<0])
 
         return left_count, right_count
+    
+    def angle_threshold(self, source_id, robots, rel_pos, sensing_angle = np.pi/2):
+        """Returns the robots that are within the angle threshold to either side of the agent.
+           Math copied from see_circlers above. Only works for sensing_angle <= pi/2
+           Can add functionality for other angles later if needed, I think we just need a separate if case that deals with the negative sign
+        """
+
+        phi = self.pos[source_id,3]  # get the angle of the agent
+        phi_xy = [math.cos(phi), math.sin(phi)]  # get the x and y components of the angle
+        mag_phi = np.linalg.norm(phi_xy)  # get the magnitude of the angle
+
+        candidates = robots.copy()
+        new_robots = []
+        for robot in candidates:  # loop through each robot
+            dot = np.dot(phi_xy, rel_pos[robot,:2])  # get the dot product of the angle and the relative position of the robot
+            if dot > 0:  # if the dot product is positive, the robot is in front of the agent
+                d_robot = np.linalg.norm(rel_pos[robot,:2])  # get the distance to the robot
+
+                angle = abs(math.acos(dot / (mag_phi * d_robot)))  # get the angle between the agent and the robot
+
+                if (angle*180/math.pi) < (sensing_angle/2):  # if the angle is less than the sensing angle, the agent can see the robot
+                    new_robots.append(robot)  # add the robot to the list of robots that are within the angle threshold
+
+        return new_robots
 
     def rot_global_to_robot(self, phi):
         """Rotate global coordinates to robot coordinates. Used before simulation of dynamics.
