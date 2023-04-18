@@ -10,7 +10,7 @@ class Fish():
     """Bluebot instance
     """
     
-    def __init__(self, my_id, dynamics, environment, attract, speed_up):
+    def __init__(self, my_id, dynamics, environment, attract, speed_up, sensing_angle):
         # Arguments
         self.id = my_id
         self.dynamics = dynamics
@@ -29,6 +29,7 @@ class Fish():
 
         # Behavior specific
         self.target_depth = random.randint(250, 1170-250)
+        self.sensing_angle = sensing_angle
 
     def run(self, duration):
         """(1) Get neighbors from environment, (2) move accordingly, (3) update your state in environment
@@ -267,7 +268,7 @@ class Fish():
             return (target_pos, self_vel)
 
         # self.circling(robots, rel_pos)
-        new_robots = self.environment.angle_threshold(robots, rel_pos, self.sensing_angle)
+        new_robots = self.environment.angle_threshold(self.id ,robots, rel_pos, self.sensing_angle)
         self.bv_align_paramterized(new_robots, rel_pos, attract, speed_up)
         self.depth_ctrl_psensor(self.target_depth)
 
