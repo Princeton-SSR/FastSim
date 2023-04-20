@@ -30,6 +30,7 @@ class Fish():
 
         # Behavior specific
         self.target_depth = random.randint(250, 1170-250)
+        self.sensing_angle = sensing_angle
 
     def run(self, duration):
         """(1) Get neighbors from environment, (2) move accordingly, (3) update your state in environment
