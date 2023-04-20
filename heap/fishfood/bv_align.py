@@ -10,13 +10,14 @@ class Fish():
     """Bluebot instance
     """
     
-    def __init__(self, my_id, dynamics, environment, attract, speed_up):
+    def __init__(self, my_id, dynamics, environment, attract=1, speed_up=1, sensing_angle=90):
         # Arguments
         self.id = my_id
         self.dynamics = dynamics
         self.environment = environment
         self.attract = attract
         self.speed_up = speed_up
+        self.sensing_angle = sensing_angle
 
         # Bluebot features
         self.body_length = 130
@@ -267,7 +268,7 @@ class Fish():
             return (target_pos, self_vel)
 
         # self.circling(robots, rel_pos)
-        new_robots = self.environment.angle_threshold(robots, rel_pos, self.sensing_angle)
+        new_robots = self.environment.angle_threshold(self.id, robots, rel_pos, self.sensing_angle)
         self.bv_align_paramterized(new_robots, rel_pos, attract, speed_up)
         self.depth_ctrl_psensor(self.target_depth)
 

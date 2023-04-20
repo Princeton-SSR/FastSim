@@ -5,6 +5,7 @@ import random
 import numpy as np
 from scipy.spatial.distance import cdist
 import sys
+import pdb
 U_LED_DX = 86 # [mm] leds x-distance on BlueBot
 U_LED_DZ = 86 # [mm] leds z-distance on BlueBot
 
@@ -284,13 +285,15 @@ class Environment():
 
         return left_count, right_count
     
-    def angle_threshold(self, source_id, robots, rel_pos, sensing_angle = np.pi/2):
+    def angle_threshold(self, source_id, robots, rel_pos, sensing_angle = 90):
         """Returns the robots that are within the angle threshold to either side of the agent.
-           Math copied from see_circlers above. Only works for sensing_angle <= pi/2
+           Math copied from see_circlers above. Only works for sensing_angle <= 90
            Can add functionality for other angles later if needed, I think we just need a separate if case that deals with the negative sign
         """
 
+        # pdb.set_trace()
         phi = self.pos[source_id,3]  # get the angle of the agent
+        # pdb.set_trace()
         phi_xy = [math.cos(phi), math.sin(phi)]  # get the x and y components of the angle
         mag_phi = np.linalg.norm(phi_xy)  # get the magnitude of the angle
 
