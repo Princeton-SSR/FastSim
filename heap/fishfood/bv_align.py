@@ -270,6 +270,7 @@ class Fish():
 
         # self.circling(robots, rel_pos)
         new_robots = self.environment.angle_threshold(self.id, robots, rel_pos, self.sensing_angle)
+        print(new_robots)
         self.bv_align_paramterized(new_robots, rel_pos, attract, speed_up)
         self.depth_ctrl_psensor(self.target_depth)
 

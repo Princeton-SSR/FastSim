@@ -305,8 +305,8 @@ class Environment():
                 d_robot = np.linalg.norm(rel_pos[robot,:2])  # get the distance to the robot
 
                 angle = abs(math.acos(dot / (mag_phi * d_robot)))  # get the angle between the agent and the robot
-
-                if (angle*180/math.pi) < (sensing_angle/2):  # if the angle is less than the sensing angle, the agent can see the robot
+                # print(angle)
+                if (angle*180/math.pi) < (sensing_angle):  # if the angle is less than the sensing angle, the agent can see the robot
                     new_robots.append(robot)  # add the robot to the list of robots that are within the angle threshold
 
         return new_robots

@@ -308,7 +308,7 @@ class TestBVMethods(unittest.TestCase):
         source_id = 0
 
         # set up sim
-        test_fish, env, dyn = set_up_sim(n, source_id)
+        test_fish, env, dyn = set_up_sim(n, source_id, attract=1, speed_up=1, angle=90)
 
         # set self position
         env.pos = np.array([[0,0,100,np.pi/2],[100,100,100,np.pi/2]])
@@ -346,7 +346,7 @@ class TestBVMethods(unittest.TestCase):
         source_id = 0
 
         # set up sim
-        test_fish, env, dyn = set_up_sim(n, source_id)
+        test_fish, env, dyn = set_up_sim(n, source_id, attract=1, speed_up=1, angle=90)
 
         # set self position
         env.pos = np.array([[0,0,100,np.pi/2],[100,100,100,np.pi/2]])
@@ -382,7 +382,7 @@ class TestBVMethods(unittest.TestCase):
         source_id = 0
 
         # set up sim
-        test_fish, env, dyn = set_up_sim(n, source_id)
+        test_fish, env, dyn = set_up_sim(n, source_id, attract=1, speed_up=1, angle=90)
 
         # set self position
         env.pos = np.array([[0,0,100,np.pi/2],[100,100,100,np.pi/2]])

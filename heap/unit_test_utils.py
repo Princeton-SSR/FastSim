@@ -39,7 +39,7 @@ def set_up_environment(n):
     return environment
 
 
-def set_up_sim(n, fid):
+def set_up_sim(n, fid, attract, speed_up, angle):
     no_fish = n
     # simulation_time = 120 # [s]
     # clock_freq = 2 # [Hz]
@@ -71,6 +71,6 @@ def set_up_sim(n, fid):
     environment = Environment(pos, vel, fish_specs, arena)
     dynamics = Dynamics(environment)
     # initialize a fish
-    test_fish = bv.Fish(my_id=fid, dynamics=dynamics, environment=environment)
+    test_fish = bv.Fish(my_id=fid, dynamics=dynamics, environment=environment, attract=attract, speed_up=speed_up, sensing_angle=angle)
 
     return test_fish, environment, dynamics
