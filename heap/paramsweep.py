@@ -94,7 +94,7 @@ def simulate(influence_param: float, sensing_angle: float):
 
     # Save Data
     # filename = time.strftime("%y%m%d_%H%M%S") # date_time
-    filename = "influence_param_eq_{}_sensing_param_{}".format(influence_param, sensing_angle)
+    filename = "influence_param_{}_sensing_param_{}_attract_{}_speed_up_{}_no_fish_{}_spread_{}_time_{}".format(influence_param, sensing_angle, attract, speed_up, no_fish, initial_spread, simulation_time)
     print("Filename")
     environment.log_to_file(filename)
     log_meta(filename=filename)
@@ -166,8 +166,8 @@ if __name__ == "__main__":
     attract = 1
 
     # Experimental Parameters
-    no_fish = 20
-    simulation_time = 400 # [s]
+    no_fish = 8
+    simulation_time = 1750 # [s]
     clock_freq = 2 # [Hz]
     clock_rate = 1/clock_freq
 
@@ -181,7 +181,7 @@ if __name__ == "__main__":
     # Standard Tank
     # arena_list = [1780, 1780, 1170]
     #TODO: Add circle as arena shape (cylinder)
-    arena_list = [5000,5000,500]
+    arena_list = [45000,45000,500]
     arena = np.array(arena_list)
     arena_center = arena / 2.0
 
@@ -192,6 +192,7 @@ if __name__ == "__main__":
     parser.add_argument("--speed_up", type=int)
     parser.add_argument("--attract", type=int)
     parser.add_argument("--no_fish", type=int)
+    parser.add_argument("--spread", type=float)
     parser.add_argument("--simulation_time", type=int)
     parser.add_argument("--clock_freq", type=int)
     parser.add_argument("--v_range", type=int)
@@ -215,6 +216,12 @@ if __name__ == "__main__":
     if args.attract != None:
         attract = args.attract
 
+    if args.no_fish != None:
+        no_fish = args.no_fish
+
+    if args.spread != None:
+        initial_spread = args.spread
+
     if args.simulation_time != None:
         simulation_time = args.simulation_time
     
@@ -230,10 +237,16 @@ if __name__ == "__main__":
     if args.n_magnitude != None:
         n_magnitude = args.n_magnitude
 
-    influence_param_arr = np.linspace(.2, 1.5, 5)
-    sensing_angle_arr = np.linspace(15, 90, 5)
+    influence_param_arr = np.linspace(.2, 3.5, 8)
+    # Failed Experiment 1: Sensing angle np.linspace(15, 90, 10) and all four behaviors didn't work well at all 
+    sensing_angle_arr = np.linspace(15, 90, 8)
     
-    for influence_param in influence_param_arr:
-        for sensing_angle in sensing_angle_arr:
-            filename = simulate(influence_param, sensing_angle)
-            animate(filename=filename)
+    for i in range(2):
+        for j in range(2):
+            attract = i
+            speed_up = j
+
+            for influence_param in influence_param_arr:
+             for sensing_angle in sensing_angle_arr:
+                filename = simulate(influence_param, sensing_angle)
+                animate(filename=filename)
