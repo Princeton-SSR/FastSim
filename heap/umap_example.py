@@ -7,11 +7,11 @@ import umap
 sns.set(style='white', context='poster', rc={'figure.figsize':(14,10)})
 
 # load data from simulated experiment
-data = np.loadtxt('./logfiles/200604_153757_data.txt', delimiter=',')
+data = np.loadtxt('./logfiles/230613_153004_data.txt', delimiter=',')
 
 # 50 fish, 8 elements long state vector
 # each line 1 fish, xyz_phi_pos xyz_phi_vel columns
-no_fishes = 50
+no_fishes = 20
 data_reshape = np.empty([no_fishes,8])
 for ii in range(no_fishes):
 	data_reshape[ii,:4] = data[40, 4*ii : 4*ii+4]

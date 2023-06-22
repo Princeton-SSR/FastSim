@@ -283,7 +283,10 @@ class Environment():
         right_count = len(sign_perp[sign_perp>0])
         left_count = len(sign_perp[sign_perp<0])
 
-        return left_count, right_count
+        ind_right = np.where(sign_perp>0)[0]
+        ind_left = np.where(sign_perp<0)[0]
+
+        return left_count, right_count, ind_left, ind_right
     
     def angle_threshold(self, source_id, robots, rel_pos, sensing_angle = 90):
         """Returns the robots that are within the angle threshold to either side of the agent.
