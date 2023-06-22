@@ -4,6 +4,7 @@ from math import *
 import numpy as np
 import random
 import time
+import pdb
 
 
 class Fish():
@@ -40,29 +41,6 @@ class Fish():
         robots, rel_pos, dist, leds = self.environment.get_robots(self.id)
         target_pos, vel = self.move(robots, rel_pos, dist, duration, attract, speed_up)
         self.environment.update_states(self.id, target_pos, vel)
-
-    def lj_force(self, robots, rel_pos, dist, r_target):
-        """lj_force derives the Lennard-Jones potential and force based on the relative positions of all neighbors and the desired self.target_dist to neighbors. The force is a gain factor, attracting or repelling a fish from a neighbor. The center is a point in space toward which the fish will move, based on the sum of all weighted neighbor positions.
-        """
-        a = 12
-        b = 6
-        epsilon = 1 # depth of potential well, V_LJ(r_target) = epsilon
-        gamma = 10 # force gain
-        r_const = r_target + 2 * self.body_length
-
-        center = np.zeros((3,))
-        n = len(robots)
-
-        for robot in robots:
-            r = min(dist[robot], r_const)
-            f_lj = -gamma*epsilon/r * (a*(r_target/r)**a - 2*b*(r_target/r)**b)
-            center += f_lj * rel_pos[robot,:3]
-
-        center /= n
-        magn = np.linalg.norm(center) # normalize
-        center /= magn # normalize
-
-        return (center, magn)
 
     def depth_ctrl_vision(self, r_move_g):
         """Vision-like depth control
@@ -136,27 +114,7 @@ class Fish():
             if heading > -caudal_range:
                 self.caudal = freq_c
             else:
-                self.caudal = 0
-
-    def circling(self, robots, rel_pos):
-        sensing_angle = 25 #deg
-
-        if not robots:
-            self.pect_l = 0
-            self.pect_r = 0.5
-            self.caudal = 0.1
-            return
-        
-        someone = self.environment.see_circlers(self.id, robots, rel_pos, sensing_angle)
-
-        if someone:
-            self.pect_r = 0
-            self.pect_l = 0.5
-            self.caudal = 0.1
-        else:
-            self.pect_l = 0
-            self.pect_r = 0.5
-            self.caudal = 0.1     
+                self.caudal = 0 
 
     def bv_align(self, robots, rel_pos):
 
@@ -170,8 +128,24 @@ class Fish():
             self.caudal = 0
             return
 
-        left_count, right_count = self.environment.count_left_right(self.id, robots, rel_pos)
+        left_count, right_count, ind_left, ind_right = self.environment.count_left_right(self.id, robots, rel_pos)
         # print("left_count = " + str(left_count) + ", right_count = " + str(right_count))
+
+        # split by distances, max distance and repel distance
+        # rep_distance = self.environment.v_range//4
+        # distances = np.linalg.norm(rel_pos, axis=1)
+        # ind_rep = np.where(distances < rep_distance)[0]
+
+        # ind_rep_right = np.intersect1d(ind_rep, ind_right)
+        # # ind_attr_right = np.setdiff1d(ind_right, ind_rep_right)
+        # ind_rep_left = np.intersect1d(ind_rep, ind_left)
+        # # ind_attr_left = np.setdiff1d(ind_left, ind_rep_left)
+
+        # right_count_tot = right_count - len(ind_rep_right) + len(ind_rep_left)
+        # left_count_tot = left_count - len(ind_rep_left) + len(ind_rep_right)
+
+        # right_count = right_count_tot
+        # left_count = left_count_tot
 
         if left_count > right_count:
             self.pect_l = 0.2*left_count # attract
@@ -186,7 +160,7 @@ class Fish():
             self.pect_r = 0
             self.caudal = 0
 
-    def bv_align_paramterized(self, robots, rel_pos, attract, speed_up, influence=.2):
+    def bv_align_paramterized(self, robots, rel_pos, dist, attract, speed_up, influence=.2):
         # attract and speed_up must take binary values of 0 or 1 
         assert (attract == 0 or attract == 1)
         assert (speed_up == 0 or speed_up == 1)
@@ -202,8 +176,9 @@ class Fish():
 
         # split by distances, max distance and repel distance
         rep_distance = self.environment.v_range//4
-        distances = np.linalg.norm(rel_pos, axis=1)
-        ind_rep = np.where(distances < rep_distance)[0]
+        # distances = np.linalg.norm(rel_pos[:,:3], axis=1)
+        ind_rep = np.where(dist < rep_distance)[0]
+        # pdb.set_trace()
 
         ind_rep_right = np.intersect1d(ind_rep, ind_right)
         # ind_attr_right = np.setdiff1d(ind_right, ind_rep_right)
@@ -212,6 +187,7 @@ class Fish():
 
         right_count_tot = right_count - len(ind_rep_right) + len(ind_rep_left)
         left_count_tot = left_count - len(ind_rep_left) + len(ind_rep_right)
+        
 
         right_count = right_count_tot
         left_count = left_count_tot
@@ -219,7 +195,7 @@ class Fish():
         # speed toward
         if attract == 1 and speed_up == 1:
             if left_count > right_count:
-                self.pect_l = influence*left_count # attract
+                self.pect_l = 2*influence*left_count # attract
                 self.pect_r = 0             # attract 
                 self.caudal = influence*left_count # speed_up
             elif left_count < right_count:
@@ -287,7 +263,7 @@ class Fish():
         # self.circling(robots, rel_pos)
         new_robots = self.environment.angle_threshold(self.id, robots, rel_pos, self.sensing_angle)
         # print(new_robots)
-        self.bv_align_paramterized(new_robots, rel_pos, attract, speed_up)
+        self.bv_align_paramterized(new_robots, rel_pos, dist, attract, speed_up, influence=0.2)
         self.depth_ctrl_psensor(self.target_depth)
 
         self.dynamics.update_ctrl(self.dorsal, self.caudal, self.pect_r, self.pect_l)

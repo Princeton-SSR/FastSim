@@ -55,14 +55,14 @@ Fish = getattr(importlib.import_module('fishfood.' + experiment_file), 'Fish')
 # Experimental Parameters
 #TODO: change this back to 20 
 no_fish = 20
-simulation_time = 400 # [s]
+simulation_time = 200 # [s]
 clock_freq = 2 # [Hz]
 clock_rate = 1/clock_freq
 
 # Fish Specifications
-v_range=1000 # visual range, [mm]
-# w_blindspot=50 # width of blindspot, [mm]
-w_blindspot=3141 # TODO: figure out mapping mm to degrees
+v_range=5000 # visual range, [mm]
+w_blindspot=50 # width of blindspot, [mm]
+# w_blindspot=3141 # TODO: figure out mapping mm to degrees
 r_sphere=50 # radius of blocking sphere for occlusion, [mm]
 n_magnitude=0.1 # visual noise magnitude, [% of distance]
 fish_specs = (v_range, w_blindspot, r_sphere, n_magnitude)
@@ -70,7 +70,7 @@ fish_specs = (v_range, w_blindspot, r_sphere, n_magnitude)
 # Standard Tank
 # arena_list = [1780, 1780, 1170]
 #TODO: Add circle as arena shape (cylinder)
-arena_list = [5000,5000,500]
+arena_list = [10000,10000,500]
 arena = np.array(arena_list)
 arena_center = arena / 2.0
 
@@ -102,8 +102,8 @@ simulation_steps = no_fish*simulation_time*clock_freq # overall
 steps = 0
 prog_incr = 0.1
 
-print("Initial positions [x,y,z,theta]")
-print(pos)
+# print("Initial positions [x,y,z,theta]")
+# print(pos)
 
 while True:
     progress = steps/simulation_steps
