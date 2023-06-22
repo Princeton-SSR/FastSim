@@ -402,6 +402,24 @@ class TestBVMethods(unittest.TestCase):
         self.assertTrue(target_pos[1] > 0)
         self.assertTrue(target_pos[3] > np.pi/2)
 
+    def test_angle_threshold_1(self):
+
+        n=2
+        # duration
+        d = 1
+        # source_id is a number
+        source_id = 0
+
+        # set up sim
+        test_fish, env, dyn = set_up_sim(n, source_id, attract=1, speed_up=1, angle=90)
+
+        env.pos = np.array([[0,0,100,np.pi/2],[100,100,100,np.pi/2]])
+        # robots is a list of indices (excluding self)
+        robots = np.arange(1,n)
+        # rel_pos is the relative positions as a list of [x,y,z,theta]
+        # let self be at [0,0,np.pi/2]
+        rel_pos = np.array([[0,0,0,0],[100,100,0,0]])
+
 
 if __name__ == '__main__':
     unittest.main()
