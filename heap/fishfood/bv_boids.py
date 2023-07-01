@@ -11,7 +11,7 @@ class Fish():
     """Bluebot instance
     """
     
-    def __init__(self, my_id, dynamics, environment, attract=1, speed_up=1, sensing_angle=90):
+    def __init__(self, my_id, dynamics, environment, attract=1, speed_up=1, sensing_angle=170):
         # Arguments
         self.id = my_id
         self.dynamics = dynamics
@@ -30,14 +30,14 @@ class Fish():
         self.pect_l = 0
 
         # Behavior specific
-        self.target_depth = random.randint(250, 1170-250)
+        self.target_depth = random.randint(200, 300)
         self.sensing_angle = sensing_angle
 
     def run(self, duration):
         """(1) Get neighbors from environment, (2) move accordingly, (3) update your state in environment
         """
         attract = 1
-        speed_up = 1
+        speed_up = 0
         robots, rel_pos, dist, leds = self.environment.get_robots(self.id)
         target_pos, vel = self.move(robots, rel_pos, dist, duration, attract, speed_up)
         self.environment.update_states(self.id, target_pos, vel)
@@ -116,50 +116,6 @@ class Fish():
             else:
                 self.caudal = 0 
 
-    def bv_align(self, robots, rel_pos):
-
-        # attract = 1 or 0
-        # speed_up  =1 or 0
-        # sensing_angle = 90 #deg
-
-        if not robots:
-            self.pect_l = 0
-            self.pect_r = 0
-            self.caudal = 0
-            return
-
-        left_count, right_count, ind_left, ind_right = self.environment.count_left_right(self.id, robots, rel_pos)
-        # print("left_count = " + str(left_count) + ", right_count = " + str(right_count))
-
-        # split by distances, max distance and repel distance
-        # rep_distance = self.environment.v_range//4
-        # distances = np.linalg.norm(rel_pos, axis=1)
-        # ind_rep = np.where(distances < rep_distance)[0]
-
-        # ind_rep_right = np.intersect1d(ind_rep, ind_right)
-        # # ind_attr_right = np.setdiff1d(ind_right, ind_rep_right)
-        # ind_rep_left = np.intersect1d(ind_rep, ind_left)
-        # # ind_attr_left = np.setdiff1d(ind_left, ind_rep_left)
-
-        # right_count_tot = right_count - len(ind_rep_right) + len(ind_rep_left)
-        # left_count_tot = left_count - len(ind_rep_left) + len(ind_rep_right)
-
-        # right_count = right_count_tot
-        # left_count = left_count_tot
-
-        if left_count > right_count:
-            self.pect_l = 0.2*left_count # attract
-            self.pect_r = 0             # attract 
-            self.caudal = 0.2*left_count # speed_up
-        elif left_count < right_count:
-            self.pect_l = 0 # attract
-            self.pect_r = 0.2*right_count # attract
-            self.caudal = 0.2*right_count # speed up
-        else: 
-            self.pect_l = 0
-            self.pect_r = 0
-            self.caudal = 0
-
     def bv_align_paramterized(self, robots, rel_pos, dist, attract, speed_up, influence=.2):
         # attract and speed_up must take binary values of 0 or 1 
         assert (attract == 0 or attract == 1)
@@ -175,32 +131,32 @@ class Fish():
         # print("left_count = " + str(left_count) + ", right_count = " + str(right_count))
 
         # split by distances, max distance and repel distance
-        rep_distance = self.environment.v_range//4
-        # distances = np.linalg.norm(rel_pos[:,:3], axis=1)
-        ind_rep = np.where(dist < rep_distance)[0]
-        # pdb.set_trace()
+        # rep_distance = self.environment.v_range//4
+        # # distances = np.linalg.norm(rel_pos[:,:3], axis=1)
+        # ind_rep = np.where(dist < rep_distance)[0]
+        # # pdb.set_trace()
 
-        ind_rep_right = np.intersect1d(ind_rep, ind_right)
-        # ind_attr_right = np.setdiff1d(ind_right, ind_rep_right)
-        ind_rep_left = np.intersect1d(ind_rep, ind_left)
-        # ind_attr_left = np.setdiff1d(ind_left, ind_rep_left)
+        # ind_rep_right = np.intersect1d(ind_rep, ind_right)
+        # # ind_attr_right = np.setdiff1d(ind_right, ind_rep_right)
+        # ind_rep_left = np.intersect1d(ind_rep, ind_left)
+        # # ind_attr_left = np.setdiff1d(ind_left, ind_rep_left)
 
-        right_count_tot = right_count - len(ind_rep_right) + len(ind_rep_left)
-        left_count_tot = left_count - len(ind_rep_left) + len(ind_rep_right)
+        # right_count_tot = right_count - len(ind_rep_right) + len(ind_rep_left)
+        # left_count_tot = left_count - len(ind_rep_left) + len(ind_rep_right)
         
 
-        right_count = right_count_tot
-        left_count = left_count_tot
+        # right_count = right_count_tot
+        # left_count = left_count_tot
 
         # speed toward
         if attract == 1 and speed_up == 1:
             if left_count > right_count:
-                self.pect_l = 2*influence*left_count # attract
+                self.pect_l = 4*influence*left_count # attract
                 self.pect_r = 0             # attract 
                 self.caudal = influence*left_count # speed_up
             elif left_count < right_count:
                 self.pect_l = 0 # attract
-                self.pect_r = influence*right_count # attract
+                self.pect_r = 4*influence*right_count # attract
                 self.caudal = influence*right_count # speed up
             else: 
                 self.pect_l = 0
@@ -225,12 +181,12 @@ class Fish():
         # slow toward
         if attract == 1 and speed_up == 0:
             if left_count > right_count:
-                self.pect_l = influence*left_count # attract
+                self.pect_l = 2*influence*left_count # attract
                 self.pect_r = 0             # attract 
                 self.caudal = 1-influence*left_count # speed_up
             elif left_count < right_count:
                 self.pect_l = 0 # attract
-                self.pect_r = influence*right_count # attract
+                self.pect_r = 2*influence*right_count # attract
                 self.caudal = 1-influence*right_count # speed up
             else: 
                 self.pect_l = 0
