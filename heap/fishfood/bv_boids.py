@@ -162,7 +162,55 @@ class Fish():
                 self.pect_l = 0
                 self.pect_r = 0
                 self.caudal = 0
+
+        # slow toward
+        if attract == 1 and speed_up == 0:
+            if left_count > right_count:
+                turn_l = 4*influence*left_count # attract
+                turn_r = 0             # attract 
+                forward = 1-influence*left_count # speed_up
+            elif left_count < right_count:
+                turn_l = 0 # attract
+                turn_r = 4*influence*right_count # attract
+                forward = 1-influence*right_count # speed up
+            else: 
+                turn_l = 0
+                turn_r = 0
+                forward = 0
+
+        # clip
+        if forward > 1:
+            forward = 1
+        elif forward < 0:
+            forward = 0
+        if turn_l > 1:
+            turn_l = 1
+        elif turn_l < 0:
+            turn_l = 0
+        if turn_r > 1:
+            turn_r = 1
+        elif turn_r < 0:
+            turn_r = 0
+
+        # then cast to fins, this cancels out the reverse motion caused by the pect fins
+        self.pect_l = turn_l
+        self.pect_r = turn_r
+        self.caudal = forward + 0.5*(turn_l + turn_r)
+
+        # clip again
+        if self.caudal > 1:
+            self.pect_l = self.pect_l/self.caudal
+            self.pect_r = self.pect_r/self.caudal
+            self.caudal = 1
+        if self.pect_l > 1:
+            self.pect_l = 1
+            self.caudal = forward + 0.5
+        if self.pect_r > 1:
+            self.pect_r = 1
+            self.caudal = forward + 0.5
         
+
+
         # speed away 
         if attract == 0 and speed_up == 1:
             if left_count > right_count:
@@ -178,21 +226,6 @@ class Fish():
                 self.pect_r = 0
                 self.caudal = 0
         
-        # slow toward
-        if attract == 1 and speed_up == 0:
-            if left_count > right_count:
-                self.pect_l = 2*influence*left_count # attract
-                self.pect_r = 0             # attract 
-                self.caudal = 1-influence*left_count # speed_up
-            elif left_count < right_count:
-                self.pect_l = 0 # attract
-                self.pect_r = 2*influence*right_count # attract
-                self.caudal = 1-influence*right_count # speed up
-            else: 
-                self.pect_l = 0
-                self.pect_r = 0
-                self.caudal = 0
-
         # slow away 
         #TODO: The way we're going about slowing down is wrong. This is actually speeding things up. 
         if attract == 0 and speed_up == 0:
@@ -208,6 +241,25 @@ class Fish():
                 self.pect_l = 0
                 self.pect_r = 0
                 self.caudal = 0
+
+
+        # clip
+        # if(self.pect_l > 1):
+        #     self.pect_l = 1
+        # elif(self.pect_l < 0):
+        #     self.pect_l = 0
+
+        # if(self.pect_r > 1):
+        #     self.pect_r = 1
+        # elif(self.pect_r < 0):
+        #     self.pect_r = 0
+
+        # if(self.caudal > 1):
+        #     self.caudal = 1
+        # elif(self.caudal < 0):
+        #     self.caudal = 0
+
+        # print(str(self.pect_l) + ", " + str(self.pect_r) + ", " + str(self.caudal))
 
     def move(self, robots, rel_pos, dist, duration, attract, speed_up):
         """Decision-making based on neighboring robots and corresponding move
