@@ -63,7 +63,7 @@ for ii in range(1,fishes):
 
 # Colors
 v = np.sqrt(x**2 + y**2 + z**2)
-v -= v.min(); v /= v.max();
+v -= v.min(); v /= v.max()
 colors = np.array([cm.Blues(k) for k in v])
 #colors[:, 0, :] = cm.Reds(0.5) # this fish is red
 
