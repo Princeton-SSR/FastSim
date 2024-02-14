@@ -4,7 +4,7 @@ Leader stop/swim forward
 follower follows on the right (set target on leader's right)
 (follower use only local LED info)
 
-Limited to 2 agents, 1 leader + 1 followers
+Expand to more than 2 agents, 1 leader + N followers (debugging)
 
 Running instrucion:
 go to enviornment python 3.6
@@ -514,6 +514,70 @@ class Fish():
                     self.home(new_pos, magnitude)
 
             self.depth_ctrl_vision(r_move_g) 
+
+        elif self.id == 2: # follower
+            print("************at follower************")
+
+            # remove refection. Input leds (relative position in global frame)
+
+            l_leds = leds[:3,:3] # leader's led
+            print("in move, leader's leds\n",l_leds)
+            leds = self.remove_reflections(l_leds, 3) 
+
+            # leds = self.remove_reflections(leds, 3) 
+            leds = self.parsing(leds)  # output leds in qpr in robot's frame
+            # leds = self.remove_reflections(leds, 3)
+
+            duplet = self._pqr_to_xyz(leds)  # xyz of led_1 and led_2
+
+            b3_pqr = leds[:,-1]
+            triplet = self._pqr_3_to_xyz(duplet, b3_pqr)
+      
+
+            orientation = self._orientation(triplet)    
+
+
+            heading_vector = triplet[:,2] - triplet[:,0]
+         
+
+            move = rel_pos[0][:3]  # get the leader's pos, in global frame
+
+            
+            # Global to Robot Transformation
+            phi = self.environment.pos[self.id,3]
+            r_T_g = self.environment.rot_global_to_robot(phi)
+            r_move_g = r_T_g @ move  #  get the leader's pos, in robot frame
+
+            # check distance
+            rel_dist = dist[0]
+
+            if rel_dist <= safe_distance:
+                magnitude = 0
+                self.wait(0.1) # move backward, set pect freq
+                # self.depth_ctrl_vision(r_move_g) 
+
+            else:
+                if rel_dist > approach_distance: 
+                    magnitude = 0.4
+
+                    self.home(r_move_g, magnitude)
+                    # self.depth_ctrl_vision(r_move_g) 
+
+
+                else: 
+                    magnitude = 0.15
+
+                    distance = safe_distance
+                    new_pos = self.translate( r_move_g, heading_vector, 90, distance)  #   pos, vector, keep_angle,distance)
+
+
+                    new_leds = np.transpose (self.translate( np.transpose(triplet), heading_vector, -90, distance) )
+
+
+                    self.home(new_pos, magnitude)
+
+            self.depth_ctrl_vision(r_move_g) 
+
 
         else:
             ## turn clockwise if true, counter-clockwise if false?
