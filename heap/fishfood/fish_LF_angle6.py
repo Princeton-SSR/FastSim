@@ -15,6 +15,7 @@ Run python (algo file after simulation.py)
 $$ python3 simulation.py dispersion
 
 """
+
 from math import *
 import numpy as np
 import time
@@ -429,13 +430,6 @@ class Fish():
         approach_distance = self.dynamics.l_robot * 1000 * 10
 
 
-        print("in move, leds\n",leds)
-        print("in move, abs_leds\n",abs_leds)
-        print("in move, rel_pos\n",rel_pos)
-        print("in move, self.id", self.id)
-
-
-
         if self.id == 0: # leader
             print("************at leader************")
             magnitude = 0.2
@@ -448,12 +442,22 @@ class Fish():
 
         elif self.id == 1: # follower
             print("************at follower************")
+            # print("leds for all robots")
+            # print(abs_leds)
+            # print("leader leds in global frame")
+            # print(abs_leds[0])   
+            # print("relative leds (pqr) (leader's led in follower's coordiantes)")
+            # print(leds)
+
+            # angles = self.calc_relative_angles(leds)
+            # print("LEDs heading angles ")
+            # print(angles)
+            # pitches = self.calc_relative_pitch(leds)
+            # print("LEDs pitch angles ")
+            # print(pitches)
 
             # remove refection. Input leds (relative position in global frame)
-            l_leds = leds[:3,:3] # leader's led
-            print("in move, leader's leds\n",l_leds)
-            leds = self.remove_reflections(l_leds, 3) 
-
+            leds = self.remove_reflections(leds, 3) 
             print("parsing")
             leds = self.parsing(leds)  # output leds in qpr in robot's frame
             # leds = self.remove_reflections(leds, 3)
@@ -485,35 +489,73 @@ class Fish():
             r_T_g = self.environment.rot_global_to_robot(phi)
             r_move_g = r_T_g @ move  #  get the leader's pos, in robot frame
 
+
             # check distance
             rel_dist = dist[0]
 
             if rel_dist <= safe_distance:
+                print('in zone 3: dead zone')
                 magnitude = 0
                 self.wait(0.1) # move backward, set pect freq
                 # self.depth_ctrl_vision(r_move_g) 
 
             else:
                 if rel_dist > approach_distance: 
-                    magnitude = 0.5
+                    print('in zone 1: approach zone')
+                    magnitude = 0.4
 
                     self.home(r_move_g, magnitude)
                     # self.depth_ctrl_vision(r_move_g) 
 
 
                 else: 
-                    magnitude = 0.4
+                    print('in zone 2: follow zone')
+                    magnitude = 0.3
 
                     distance = safe_distance
                     new_pos = self.translate( r_move_g, heading_vector, -90, distance)  #   pos, vector, keep_angle,distance)
 
+                    print("debug r_move_g_leds")
+                    print("led1")
+                    print(triplet[:,0])
+                    print("led1 translation")
+                    print(self.translate( triplet[:,0], heading_vector, -90, distance))
+
+                    print("led2")
+                    print(triplet[:,1])
+                    print("led2 translation")
+                    print(self.translate( triplet[:,1], heading_vector, -90, distance))
+
+                    print("led3")
+                    print(triplet[:,2])
+                    print("led3 translation")
+                    print(self.translate( triplet[:,2], heading_vector, -90, distance))
+
+
 
                     new_leds = np.transpose (self.translate( np.transpose(triplet), heading_vector, -90, distance) )
-
+                    print("r_move_g")
+                    print(r_move_g)
 
                     self.home(new_pos, magnitude)
+                    print("new_pos")
+                    print(new_pos)
+
+                    print("new led pos")
+                    print(new_leds)
+
+                    print("avg new led pos")
+
+                    print(np.mean(new_leds, axis=1))
+                    
+                    print("if matched?")
+                    print(self.translate( triplet[:,0], heading_vector, -90, distance) == new_leds[:,0])
+                    print(self.translate( triplet[:,1], heading_vector, -90, distance) == new_leds[:,1])
+                    print(self.translate( triplet[:,2], heading_vector, -90, distance) == new_leds[:,2])
 
             self.depth_ctrl_vision(r_move_g) 
+
+
 
         else:
             ## turn clockwise if true, counter-clockwise if false?
