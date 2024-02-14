@@ -54,13 +54,13 @@ Fish = getattr(importlib.import_module('fishfood.' + experiment_file), 'Fish')
 
 # Experimental Parameters
 #TODO: change this back to 20 
-no_fish = 20
-simulation_time = 1 # [s]
+no_fish = 2
+simulation_time = 500 # [s]
 clock_freq = 2 # [Hz]
 clock_rate = 1/clock_freq
 
 # Fish Specifications
-v_range=5000 # visual range, [mm]
+v_range=3000 # visual range, [mm]
 w_blindspot=50 # width of blindspot, [mm]
 # w_blindspot=3141 # TODO: figure out mapping mm to degrees
 r_sphere=50 # radius of blocking sphere for occlusion, [mm]
@@ -70,17 +70,34 @@ fish_specs = (v_range, w_blindspot, r_sphere, n_magnitude)
 # Standard Tank
 # arena_list = [1780, 1780, 1170]
 #TODO: Add circle as arena shape (cylinder)
-arena_list = [10000,10000,500]
+arena_list = [5000,5000,1170] # [mm]
 arena = np.array(arena_list)
 arena_center = arena / 2.0
 
 # Standard Surface Initialization
-initial_spread = 2000
+initial_spread = arena_list[0]*0.1
 pos = np.zeros((no_fish, 4))
 vel = np.zeros((no_fish, 4))
 pos[:,:2] = initial_spread * (np.random.rand(no_fish, 2) - 0.5) + arena_center[:2] # x,y
 pos[:,2] = 10 * np.random.rand(1, no_fish) # z, all fish at same noise-free depth results in LJ lock
 pos[:,3] = 2*math.pi * (np.random.rand(1, no_fish) - 0.5) # phi
+
+
+# # fix leader starting x,y, and phi
+pos[0,0] = arena_list[0] * 0.6 # x
+pos[0,1] = arena_list[1] * 0.6 # y
+pos[0,2] = arena_list[2] * 0.3 # z
+pos[0,3] = 2*math.pi * 0.25 # phi
+
+# # fix robot #1 starting x,y, and phi
+pos[1,0] = arena_list[0] * 0.8 # x
+pos[1,1] = arena_list[0] * 0.5   # y
+pos[1,3] = 2*math.pi * 0.25*0.5 # phi
+
+# # fix robot #1 starting x,y, and phi
+# pos[2,0] = arena_list[0] * 0.71 # x
+# pos[2,1] = arena_list[0] * 0.71 # y
+# pos[2,3] = 2*math.pi * 0.25*1.5 # phi
 
 # Create Environment, Dynamics, And Heap
 environment = Environment(pos, vel, fish_specs, arena)
@@ -102,11 +119,14 @@ simulation_steps = no_fish*simulation_time*clock_freq # overall
 steps = 0
 prog_incr = 0.1
 
-# print("Initial positions [x,y,z,theta]")
-# print(pos)
+print("Initial positions [x,y,z,theta]")
+print(pos)
 
 while True:
     progress = steps/simulation_steps
+
+    print("============================== at step ", steps, ", ======================================")
+
     if progress >= prog_incr:
         print('{}%'.format(round(prog_incr*100)), end=' ', flush=True)
         prog_incr += 0.1
@@ -119,6 +139,18 @@ while True:
     H.insert(uuid, event_time + duration)
 
     steps += 1
+
+    
+    # print("robot pos\n ", pos     )
+    # print("relative pos\n", environment.rel_pos)
+    # print(" pos[1,:] - pos[0,:] ", pos[1,:] - pos[0,:])
+    # print(" relative angle is ", pos[1,3] - pos[0,3], "in degree ", (pos[1,3] - pos[0,3])*180/math.pi )
+    
+
+# print(' ')
+# print("execuation speed (final speed), robot1, robot2, robot3, ....")
+# speed2 = np.sum(np.square(vel), axis = 1)
+# print(np.sqrt(speed2))
 
 print('| Duration: {} sec\n -'.format(round(time.time()-t_start)))
 

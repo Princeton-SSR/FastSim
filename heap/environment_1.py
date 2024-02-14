@@ -54,7 +54,7 @@ class Environment():
         self.updates = 0
 
     def update_tracking(self):
-        """Updates tracking after every fish took a turn, save data as steps x 8robot_no [robot0_x, robot0_v, robot1_x, robot1_v, .... ]
+        """Updates tracking after every fish took a turn
         """
         pos = np.reshape(self.pos, (1,self.no_robots*self.no_states))
         vel = np.reshape(self.vel, (1,self.no_robots*self.no_states))
@@ -80,10 +80,6 @@ class Environment():
         z3 = z1
 
         self.leds_pos[source_index] = np.array([[x1, x2, x3],[y1, y2, y3],[z1, z2, z3]])
-
-        # print(" in enviornment/update_leds")
-        # print("x1", x1)
-        # print(self.leds_pos)
 
     def init_states(self):
         """Initializes fish positions and velocities
@@ -134,9 +130,6 @@ class Environment():
             self.updates = 0
             self.update_tracking()
 
-
-
-
     def get_robots(self, source_id, visual_noise=False):
         """Provides visible neighbors and relative positions and distances to a fish
         """
@@ -151,31 +144,10 @@ class Environment():
 
         leds = self.calc_relative_leds(source_id, robots)
 
-        abs_leds = self.leds_pos
-
         if self.n_magnitude: # no overwrites of self.rel_pos and self.dist
             n_rel_pos, n_dist = self.visual_noise(source_id, rel_pos)
-
-            print("++++++++++ in enviroment/get_robots+++++++++++")
-            print("self.rel_pos", self.rel_pos.shape)
-            print(self.rel_pos)
-
-            print("n_rel_pos (noise added to relative position)", n_rel_pos.shape)
-            print(n_rel_pos)
-
-            print("leds", leds.shape)
-            print(leds)
-
-            print("+++++++++++++++++++++")
-
-            return (robots, n_rel_pos, n_dist, leds, abs_leds)
-        
-        # print("++++++++++ in enviroment/get_robots+++++++++++")
-        # print("self.rel_pos")
-        # print(self.rel_pos)
-        # print("+++++++++++++++++++++")
-
-        return (robots, rel_pos, self.dist[source_id], leds, abs_leds)
+            return (robots, n_rel_pos, n_dist, leds)
+        return (robots, rel_pos, self.dist[source_id], leds)
 
     def visual_range(self, source_id, robots):
         """Deletes fishes outside of visible range
@@ -261,12 +233,8 @@ class Environment():
     def visual_noise(self, source_id, rel_pos):
         """Adds visual noise
         """
-        # noise in x y z
         magnitudes = self.n_magnitude * np.array([self.dist[source_id]]).T
-        noise_1 = magnitudes * (np.random.rand(self.no_robots, self.no_states-1) - 0.5) # zero-mean uniform noise
-        # noise in head angle
-        noise_2 = self.n_magnitude * math.pi * (np.random.rand(self.no_robots, 1) - 0.5)
-        noise = np.hstack((noise_1, noise_2))
+        noise = magnitudes * (np.random.rand(self.no_robots, self.no_states) - 0.5) # zero-mean uniform noise
         n_rel_pos = rel_pos + noise
         n_dist = np.linalg.norm(n_rel_pos[:,:3], axis=1) # new dist without phi
 
@@ -315,7 +283,10 @@ class Environment():
         right_count = len(sign_perp[sign_perp>0])
         left_count = len(sign_perp[sign_perp<0])
 
-        return left_count, right_count
+        ind_right = np.where(sign_perp>0)[0]
+        ind_left = np.where(sign_perp<0)[0]
+
+        return left_count, right_count, ind_left, ind_right
     
     def angle_threshold(self, source_id, robots, rel_pos, sensing_angle = 90):
         """Returns the robots that are within the angle threshold to either side of the agent.
@@ -361,10 +332,6 @@ class Environment():
             if led[2] > 10: # at least 10 mm below surface to have a reflection
                 refl = led + np.array([0,0, -2*led[2]])
                 refl_list.append(refl)
-
-        # print(" in enviornment/calc_reflections")
-        # print(refl_list)
-
         return refl_list
 
     def calc_relative_leds(self, source_id, robots):
@@ -373,22 +340,14 @@ class Environment():
         if not robots:
             return np.empty((3,0))
 
-        # add_reflections = True
-        add_reflections = 0
+        add_reflections = True
         all_blobs = np.empty((3,0))
-
-        tmp = np.empty((3,0))
         
         leds = []
         for robot in robots:
             leds.append(self.leds_pos[robot])
 
         leds_list = list(np.transpose(np.hstack(leds)))
-
-        # print(" in enviornment/calc_relative_leds")
-        # print("leds xyz in abs frame (without reflection)")
-        # print(np.array(leds_list))
-
         if add_reflections:
             refl_list = self.calc_reflections(leds_list)
             leds_list = leds_list + refl_list
@@ -397,37 +356,10 @@ class Environment():
         my_phi = self.pos[source_id,3]
         R = self.rot_global_to_robot(my_phi)
 
-        
-
         for led in leds_list:
             relative_coordinates = R @ ((led - my_pos)[:, np.newaxis])
-
-
-            # tmp = np.append(tmp, relative_coordinates, axis=1)
-
             relative_coordinates /= np.linalg.norm(relative_coordinates) # normalize from xyz to pqr
-            
             all_blobs = np.append(all_blobs, relative_coordinates, axis=1)
 
         p = np.random.permutation(np.shape(all_blobs)[1]) # mix up into random order
-
-        # print(" in enviornment/calc_relative_leds")
-        # print("leds xyz in abs frame (with reflection)")
-        # print(np.array(leds_list) )
-        # print("leds xyz in robot frame ")
-        # print(tmp )
-        # # print(np.array(tmp) )
-        # print("leds pqr in robot frame")
-        # print(all_blobs)
-
-    
-        # # print(self.leds_pos)
-        # print("all_blobs")
-        # print(all_blobs)
-        # print("p")
-        # print(p)
-
-        # print("detected relative LEDs")
-        # print(all_blobs[:,p])
-
         return all_blobs[:,p]
