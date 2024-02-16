@@ -31,7 +31,7 @@ import importlib
 from environment import Environment
 from dynamics import Dynamics
 from lib_heap import Heap
-
+import os
 
 def log_meta():
     """Logs the meta data of the experiment
@@ -55,9 +55,9 @@ Fish = getattr(importlib.import_module('fishfood.' + experiment_file), 'Fish')
 # Experimental Parameters
 #TODO: change this back to 20 
 no_fish = 20
-simulation_time = 1 # [s]
+simulation_time = 10 # [s]
 clock_freq = 2 # [Hz]
-clock_rate = 1/clock_freq
+clock_rate = 1/clock_freq # [s]
 
 # Fish Specifications
 v_range=5000 # visual range, [mm]
@@ -130,3 +130,6 @@ log_meta()
 print('Simulation data got saved in ./logfiles/{}_data.txt,\nand corresponding experimental info in ./logfiles/{}_meta.txt.\n -'.format(filename, filename))
 print('Create corresponding animation by running >python animation.py {}'.format(filename))
 print('#### GOODBYE AND SEE YOU SOON AGAIN ####')
+
+# To run animation right after the code
+os.system(f'python animation.py '+filename)
