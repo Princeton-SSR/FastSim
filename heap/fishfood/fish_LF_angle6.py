@@ -15,7 +15,6 @@ Run python (algo file after simulation.py)
 $$ python3 simulation.py dispersion
 
 """
-
 from math import *
 import numpy as np
 import time
@@ -47,9 +46,16 @@ class Fish():
     def run(self, duration):
         """(1) Get neighbors from environment, (2) move accordingly, (3) update your state in environment
         """
-        print('robot id', self.id)
+
+        # print('robot id', self.id)
+
+        # (1) Get neighbors from environment
         robots, rel_pos, dist, leds, abs_leds = self.environment.get_robots(self.id)
+
+        # (2) Move according to the self.move algorithm below, perform Eular integration 
         target_pos, vel = self.move(robots, rel_pos, dist, leds, abs_leds, duration)
+
+        # (3) Update the environment
         self.environment.update_states(self.id, target_pos, vel)
 
     def depth_ctrl_vision(self, r_move_g):
@@ -58,8 +64,7 @@ class Fish():
         Args:
             r_move_g (np.array): Relative position of desired goal location in robot frame.
         """
-        pitch_range = 1 # abs(pitch) below which dorsal fin is not controlled
-
+        pitch_range = 0 # abs(pitch) below which dorsal fin is not controlled
         pitch = np.arctan2(r_move_g[2], sqrt(r_move_g[0]**2 + r_move_g[1]**2)) * 180 / pi
 
         if pitch > pitch_range:
@@ -210,7 +215,7 @@ class Fish():
         # print(rotation_matrix_z@normalized_vector * distance)
 
 
-        print()
+        # print()
 
         return new_pos
 
@@ -283,11 +288,11 @@ class Fish():
         elif abs(angles[pitch_sort_ind[1]] - angles[pitch_sort_ind[2]]) < err:
             pitch_sort_ind[0], pitch_sort_ind[1] = pitch_sort_ind[1], pitch_sort_ind[0]
             # print("cond2", pitch_sort_ind)
-        else: 
-            print("angle between led 1 and led 2 too big")
-            print("angles, ", angles)
-            print("angle difference, " , abs(angles[pitch_sort_ind[0]] - angles[pitch_sort_ind[2]]), abs(angles[pitch_sort_ind[1]] - angles[pitch_sort_ind[2]]) )
-            print("angle difference, " , degrees(abs(angles[pitch_sort_ind[0]] - angles[pitch_sort_ind[2]])), degrees(abs(angles[pitch_sort_ind[1]] - angles[pitch_sort_ind[2]])) )
+        # else: 
+        #     print("angle between led 1 and led 2 too big")
+        #     print("angles, ", angles)
+        #     print("angle difference, " , abs(angles[pitch_sort_ind[0]] - angles[pitch_sort_ind[2]]), abs(angles[pitch_sort_ind[1]] - angles[pitch_sort_ind[2]]) )
+        #     print("angle difference, " , degrees(abs(angles[pitch_sort_ind[0]] - angles[pitch_sort_ind[2]])), degrees(abs(angles[pitch_sort_ind[1]] - angles[pitch_sort_ind[2]])) )
         
         leds_132 = blobs[:,pitch_sort_ind] # re-arrange leds in the order of 1,3,2
 
@@ -417,13 +422,7 @@ class Fish():
       
     def move(self, robots, rel_pos, dist, leds, abs_leds, duration):
         """Decision-making based on neighboring robots and corresponding move
-        """
-        if not robots: # no other robots, continue with ctrl from last step
-            target_pos, self_vel = self.dynamics.simulate_move(self.id, duration)
-            return (target_pos, self_vel)
-
-        # Define your move here
-        
+        """      
 
         # Specify a distance range within which followers cease their actuation.
         safe_distance = self.dynamics.l_robot * 1000 * 3 # mm
@@ -431,17 +430,17 @@ class Fish():
 
 
         if self.id == 0: # leader
-            print("************at leader************")
+            # print("************at leader************")
             magnitude = 0.2
 
             # self.stop()
             # self.forward(magnitude)
 
             self.spin( 0.1, 0.08, True) # caudal, pect, cw
-            self.depth_ctrl_psensor(500,1) # target depth, dorsal freq
+            self.depth_ctrl_psensor(250,1) # target depth, dorsal freq
 
         elif self.id == 1: # follower
-            print("************at follower************")
+            # print("************at follower************")
             # print("leds for all robots")
             # print(abs_leds)
             # print("leader leds in global frame")
@@ -452,38 +451,45 @@ class Fish():
             # angles = self.calc_relative_angles(leds)
             # print("LEDs heading angles ")
             # print(angles)
+
+            # leds = leds[:3,:3] # only keep leader's led (QUESTIONABLE)
+
             # pitches = self.calc_relative_pitch(leds)
             # print("LEDs pitch angles ")
             # print(pitches)
-
+            # input()
             # remove refection. Input leds (relative position in global frame)
-            leds = self.remove_reflections(leds, 3) 
-            print("parsing")
+            # leds = self.remove_reflections(leds, 3) 
+            # print("parsing")
             leds = self.parsing(leds)  # output leds in qpr in robot's frame
+            # print(self.calc_relative_pitch(leds))
             # leds = self.remove_reflections(leds, 3)
+            # print(leds)
 
             duplet = self._pqr_to_xyz(leds)  # xyz of led_1 and led_2
             # print("duplet (led1 and led2) xyz is (robot frame)")
             # print(duplet)
             b3_pqr = leds[:,-1]
             triplet = self._pqr_3_to_xyz(duplet, b3_pqr)
-            print("triplet xyz is (robot frame) ")
-            print(triplet)        
+            # print("triplet xyz is (robot frame) ")
+            # print(triplet)        
 
             orientation = self._orientation(triplet)    
-            print("_orientation is ", orientation)
+            # print("_orientation is ", orientation)
 
             heading_vector = triplet[:,2] - triplet[:,0]
-            print(" heading_vector from triplet,", heading_vector)
-            
+            # print(" heading_vector from triplet,", heading_vector)
+            # print(np.linalg.norm(heading_vector))
+            # input()
             
 
             # print('the distance in between is ', dist, "approach_distance", approach_distance, 'safe_distance is', safe_distance)
 
 
-            move = rel_pos[0][:3]  # get the leader's pos, in global frame
+            move = rel_pos[0][:3]  # get the leader's pos relative to follower, in global frame
 
-            
+            # print(move)
+            # input()
             # Global to Robot Transformation
             phi = self.environment.pos[self.id,3]
             r_T_g = self.environment.rot_global_to_robot(phi)
@@ -492,68 +498,72 @@ class Fish():
 
             # check distance
             rel_dist = dist[0]
+            # print(rel_dist)
+            # print((r_move_g))
+            # print(np.linalg.norm(r_move_g))
+            # input()
+            
+            # rel_dist = np.linalg.norm(r_move_g[:2]) # define distance based on the x and y only
 
             if rel_dist <= safe_distance:
-                print('in zone 3: dead zone')
+                # print('in zone 3: dead zone')
                 magnitude = 0
                 self.wait(0.1) # move backward, set pect freq
                 # self.depth_ctrl_vision(r_move_g) 
 
-            else:
-                if rel_dist > approach_distance: 
-                    print('in zone 1: approach zone')
-                    magnitude = 0.4
+            elif rel_dist > approach_distance: 
+                # print('in zone 1: approach zone')
+                magnitude = 0.4
 
-                    self.home(r_move_g, magnitude)
-                    # self.depth_ctrl_vision(r_move_g) 
+                self.home(r_move_g, magnitude)
+                # self.depth_ctrl_vision(r_move_g) 
 
+            else: 
+                # print('in zone 2: follow zone')
+                magnitude = 0.3
 
-                else: 
-                    print('in zone 2: follow zone')
-                    magnitude = 0.3
+                distance = safe_distance
+                # set angle to -90 to follow on the right (outside), 90 to follow on the left (inside)
+                new_pos = self.translate( r_move_g, heading_vector, -90, distance)  #   pos, vector, keep_angle,distance)
 
-                    distance = safe_distance
-                    new_pos = self.translate( r_move_g, heading_vector, -90, distance)  #   pos, vector, keep_angle,distance)
+                # print("debug r_move_g_leds")
+                # print("led1")
+                # print(triplet[:,0])
+                # print("led1 translation")
+                # print(self.translate( triplet[:,0], heading_vector, -90, distance))
 
-                    print("debug r_move_g_leds")
-                    print("led1")
-                    print(triplet[:,0])
-                    print("led1 translation")
-                    print(self.translate( triplet[:,0], heading_vector, -90, distance))
+                # print("led2")
+                # print(triplet[:,1])
+                # print("led2 translation")
+                # print(self.translate( triplet[:,1], heading_vector, -90, distance))
 
-                    print("led2")
-                    print(triplet[:,1])
-                    print("led2 translation")
-                    print(self.translate( triplet[:,1], heading_vector, -90, distance))
+                # print("led3")
+                # print(triplet[:,2])
+                # print("led3 translation")
+                # print(self.translate( triplet[:,2], heading_vector, -90, distance))
 
-                    print("led3")
-                    print(triplet[:,2])
-                    print("led3 translation")
-                    print(self.translate( triplet[:,2], heading_vector, -90, distance))
+                # new_leds = np.transpose (self.translate( np.transpose(triplet), heading_vector, 90, distance) )
+                # print("r_move_g")
+                # print(r_move_g)
 
+                self.home(new_pos, magnitude)
+                # print("new_pos")
+                # print(new_pos)
 
+                # print("new led pos")
+                # print(new_leds)
 
-                    new_leds = np.transpose (self.translate( np.transpose(triplet), heading_vector, -90, distance) )
-                    print("r_move_g")
-                    print(r_move_g)
+                # print("avg new led pos")
 
-                    self.home(new_pos, magnitude)
-                    print("new_pos")
-                    print(new_pos)
-
-                    print("new led pos")
-                    print(new_leds)
-
-                    print("avg new led pos")
-
-                    print(np.mean(new_leds, axis=1))
-                    
-                    print("if matched?")
-                    print(self.translate( triplet[:,0], heading_vector, -90, distance) == new_leds[:,0])
-                    print(self.translate( triplet[:,1], heading_vector, -90, distance) == new_leds[:,1])
-                    print(self.translate( triplet[:,2], heading_vector, -90, distance) == new_leds[:,2])
+                # print(np.mean(new_leds, axis=1))
+                
+                # print("if matched?")
+                # print(self.translate( triplet[:,0], heading_vector, -90, distance) == new_leds[:,0])
+                # print(self.translate( triplet[:,1], heading_vector, -90, distance) == new_leds[:,1])
+                # print(self.translate( triplet[:,2], heading_vector, -90, distance) == new_leds[:,2])
 
             self.depth_ctrl_vision(r_move_g) 
+            # self.depth_ctrl_psensor(500,1) # target depth, dorsal freq
 
 
 

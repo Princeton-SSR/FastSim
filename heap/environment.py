@@ -140,7 +140,8 @@ class Environment():
     def get_robots(self, source_id, visual_noise=False):
         """Provides visible neighbors and relative positions and distances to a fish
         """
-        robots = set(range(self.no_robots)) # all robots
+        # robots = set(range(self.no_robots)) # all robots
+        robots = {0} # only the leaders have leds
         robots.discard(source_id) # discard self
 
         rel_pos = np.reshape(self.rel_pos[source_id], (self.no_robots, self.no_states))
@@ -156,17 +157,17 @@ class Environment():
         if self.n_magnitude: # no overwrites of self.rel_pos and self.dist
             n_rel_pos, n_dist = self.visual_noise(source_id, rel_pos)
 
-            print("++++++++++ in enviroment/get_robots+++++++++++")
-            print("self.rel_pos", self.rel_pos.shape)
-            print(self.rel_pos)
+            # print("++++++++++ in enviroment/get_robots+++++++++++")
+            # print("self.rel_pos", self.rel_pos.shape)
+            # print(self.rel_pos)
 
-            print("n_rel_pos (noise added to relative position)", n_rel_pos.shape)
-            print(n_rel_pos)
+            # print("n_rel_pos (noise added to relative position)", n_rel_pos.shape)
+            # print(n_rel_pos)
 
-            print("leds", leds.shape)
-            print(leds)
+            # print("leds", leds.shape)
+            # print(leds)
 
-            print("+++++++++++++++++++++")
+            # print("+++++++++++++++++++++")
 
             return (robots, n_rel_pos, n_dist, leds, abs_leds)
         

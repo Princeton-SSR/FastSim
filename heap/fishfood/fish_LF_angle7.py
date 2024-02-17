@@ -46,7 +46,7 @@ class Fish():
     def run(self, duration):
         """(1) Get neighbors from environment, (2) move accordingly, (3) update your state in environment
         """
-        print('robot id', self.id)
+        # print('robot id', self.id)
         robots, rel_pos, dist, leds, abs_leds = self.environment.get_robots(self.id)
         target_pos, vel = self.move(robots, rel_pos, dist, leds, abs_leds, duration)
         self.environment.update_states(self.id, target_pos, vel)
@@ -209,7 +209,7 @@ class Fish():
         # print(rotation_matrix_z@normalized_vector * distance)
 
 
-        print()
+        # print()
 
         return new_pos
 
@@ -282,11 +282,11 @@ class Fish():
         elif abs(angles[pitch_sort_ind[1]] - angles[pitch_sort_ind[2]]) < err:
             pitch_sort_ind[0], pitch_sort_ind[1] = pitch_sort_ind[1], pitch_sort_ind[0]
             # print("cond2", pitch_sort_ind)
-        else: 
-            print("angle between led 1 and led 2 too big")
-            print("angles, ", angles)
-            print("angle difference, " , abs(angles[pitch_sort_ind[0]] - angles[pitch_sort_ind[2]]), abs(angles[pitch_sort_ind[1]] - angles[pitch_sort_ind[2]]) )
-            print("angle difference, " , degrees(abs(angles[pitch_sort_ind[0]] - angles[pitch_sort_ind[2]])), degrees(abs(angles[pitch_sort_ind[1]] - angles[pitch_sort_ind[2]])) )
+        # else: 
+        #     print("angle between led 1 and led 2 too big")
+        #     print("angles, ", angles)
+        #     print("angle difference, " , abs(angles[pitch_sort_ind[0]] - angles[pitch_sort_ind[2]]), abs(angles[pitch_sort_ind[1]] - angles[pitch_sort_ind[2]]) )
+        #     print("angle difference, " , degrees(abs(angles[pitch_sort_ind[0]] - angles[pitch_sort_ind[2]])), degrees(abs(angles[pitch_sort_ind[1]] - angles[pitch_sort_ind[2]])) )
         
         leds_132 = blobs[:,pitch_sort_ind] # re-arrange leds in the order of 1,3,2
 
@@ -417,9 +417,9 @@ class Fish():
     def move(self, robots, rel_pos, dist, leds, abs_leds, duration):
         """Decision-making based on neighboring robots and corresponding move
         """
-        if not robots: # no other robots, continue with ctrl from last step
-            target_pos, self_vel = self.dynamics.simulate_move(self.id, duration)
-            return (target_pos, self_vel)
+        # if not robots: # no other robots, continue with ctrl from last step
+        #     target_pos, self_vel = self.dynamics.simulate_move(self.id, duration)
+        #     return (target_pos, self_vel)
 
         # Define your move here
         
@@ -429,15 +429,15 @@ class Fish():
         approach_distance = self.dynamics.l_robot * 1000 * 10
 
 
-        print("in move, leds\n",leds)
-        print("in move, abs_leds\n",abs_leds)
-        print("in move, rel_pos\n",rel_pos)
-        print("in move, self.id", self.id)
+        # print("in move, leds\n",leds)
+        # print("in move, abs_leds\n",abs_leds)
+        # print("in move, rel_pos\n",rel_pos)
+        # print("in move, self.id", self.id)
 
 
 
         if self.id == 0: # leader
-            print("************at leader************")
+            # print("************at leader************")
             magnitude = 0.2
 
             # self.stop()
@@ -447,14 +447,16 @@ class Fish():
             self.depth_ctrl_psensor(500,1) # target depth, dorsal freq
 
         elif self.id == 1: # follower
-            print("************at follower************")
+            print("************at follower 1************")
 
             # remove refection. Input leds (relative position in global frame)
             l_leds = leds[:3,:3] # leader's led
             print("in move, leader's leds\n",l_leds)
-            leds = self.remove_reflections(l_leds, 3) 
+            print(self.calc_relative_pitch(leds))
 
-            print("parsing")
+            # leds = self.remove_reflections(l_leds, 3) 
+
+            # print("parsing")
             leds = self.parsing(leds)  # output leds in qpr in robot's frame
             # leds = self.remove_reflections(leds, 3)
 
@@ -463,14 +465,14 @@ class Fish():
             # print(duplet)
             b3_pqr = leds[:,-1]
             triplet = self._pqr_3_to_xyz(duplet, b3_pqr)
-            print("triplet xyz is (robot frame) ")
-            print(triplet)        
+            # print("triplet xyz is (robot frame) ")
+            # print(triplet)        
 
             orientation = self._orientation(triplet)    
-            print("_orientation is ", orientation)
+            # print("_orientation is ", orientation)
 
             heading_vector = triplet[:,2] - triplet[:,0]
-            print(" heading_vector from triplet,", heading_vector)
+            # print(" heading_vector from triplet,", heading_vector)
             
             
 
@@ -516,13 +518,13 @@ class Fish():
             self.depth_ctrl_vision(r_move_g) 
 
         elif self.id == 2: # follower
-            print("************at follower************")
+            print("************at follower 2************")
 
             # remove refection. Input leds (relative position in global frame)
 
             l_leds = leds[:3,:3] # leader's led
             print("in move, leader's leds\n",l_leds)
-            leds = self.remove_reflections(l_leds, 3) 
+            # leds = self.remove_reflections(l_leds, 3) 
 
             # leds = self.remove_reflections(leds, 3) 
             leds = self.parsing(leds)  # output leds in qpr in robot's frame

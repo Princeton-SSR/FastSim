@@ -57,9 +57,9 @@ Fish = getattr(importlib.import_module('fishfood.' + experiment_file), 'Fish')
 
 # Experimental Parameters
 #TODO: change this back to 20 
-no_fish = 2
-simulation_time = 60 # [s]
-clock_freq = 5 # [Hz]
+no_fish = 3
+simulation_time = 600 # [s]
+clock_freq = 2 # [Hz]
 clock_rate = 1/clock_freq # [s]
 
 # Fish Specifications
@@ -108,7 +108,11 @@ prog_incr = 0.1
 # print("Initial positions [x,y,z,theta]")
 # print(pos)
 
+# Main block for eular integration 
+# Note that the "step" here is not exactly the time step. For each time step, there are no_fish steps
 while True:
+
+    # Displaying and keeping track of progress
     progress = steps/simulation_steps
     if progress >= prog_incr:
         print('{}%'.format(round(prog_incr*100)), end=' ', flush=True)
@@ -116,10 +120,11 @@ while True:
     if steps >= simulation_steps:
             break
 
-    (uuid, event_time) = H.delete_min()
+    # time step for one fish 
+    (uuid, event_time) = H.delete_min() # pull a fish from the heap
     duration = random.gauss(clock_rate, 0.1*clock_rate)
-    fishes[uuid].run(duration)
-    H.insert(uuid, event_time + duration)
+    fishes[uuid].run(duration) # RUN THE TIMESTEP FOR THE FISH
+    H.insert(uuid, event_time + duration) # return the fish to the heap after updating its clock
 
     steps += 1
 
