@@ -22,6 +22,7 @@ import warnings
 
 U_LED_DX = 86 # [mm] leds x-distance on BlueBot
 U_LED_DZ = 86 # [mm] leds z-distance on BlueBot
+N_fish = 2
 
 class Fish():
     """Bluebot instance
@@ -431,7 +432,7 @@ class Fish():
 
         if self.id == 0: # leader
             # print("************at leader************")
-            magnitude = 0.2
+            # magnitude = 0.2
 
             # self.stop()
             # self.forward(magnitude)
@@ -439,7 +440,7 @@ class Fish():
             self.spin( 0.1, 0.08, True) # caudal, pect, cw
             self.depth_ctrl_psensor(250,1) # target depth, dorsal freq
 
-        elif self.id == 1: # follower
+        elif self.id == 1 & leds.size != 0: # follower and leader can be seen 
             # print("************at follower************")
             # print("leds for all robots")
             # print(abs_leds)
@@ -456,7 +457,8 @@ class Fish():
 
             # pitches = self.calc_relative_pitch(leds)
             # print("LEDs pitch angles ")
-            # print(pitches)
+            # print(rel_pos[0][:3])
+            # print(leds)
             # input()
             # remove refection. Input leds (relative position in global frame)
             # leds = self.remove_reflections(leds, 3) 
@@ -482,29 +484,25 @@ class Fish():
             # print(np.linalg.norm(heading_vector))
             # input()
             
+            # calculate the relative position of the leader from its LEDs
+            r_move_g = 0.5*(triplet[:,0]+triplet[:,1]).transpose()
 
-            # print('the distance in between is ', dist, "approach_distance", approach_distance, 'safe_distance is', safe_distance)
+            # calculate the distance with respect to the leader
+            rel_dist = np.linalg.norm(r_move_g[0:2])
 
+            ########################################################################
+            # THIS BLOCK BELOW USES CENTRALIZED INFORMATION
+            # move = rel_pos[0][:3]  # get the leader's pos relative to follower, in global frame
 
-            move = rel_pos[0][:3]  # get the leader's pos relative to follower, in global frame
-
-            # print(move)
-            # input()
-            # Global to Robot Transformation
-            phi = self.environment.pos[self.id,3]
-            r_T_g = self.environment.rot_global_to_robot(phi)
-            r_move_g = r_T_g @ move  #  get the leader's pos, in robot frame
-
+            # # Global to Robot Transformation
+            # phi = self.environment.pos[self.id,3]
+            # r_T_g = self.environment.rot_global_to_robot(phi)
+            # r_move_g = r_T_g @ move  #  get the leader's pos, in robot frame
 
             # check distance
-            rel_dist = dist[0]
-            # print(rel_dist)
-            # print((r_move_g))
-            # print(np.linalg.norm(r_move_g))
-            # input()
+            # rel_dist = dist[0]
+            ########################################################################
             
-            # rel_dist = np.linalg.norm(r_move_g[:2]) # define distance based on the x and y only
-
             if rel_dist <= safe_distance:
                 # print('in zone 3: dead zone')
                 magnitude = 0
@@ -570,7 +568,9 @@ class Fish():
         else:
             ## turn clockwise if true, counter-clockwise if false?
 
-            self.spin( 0.1, 0.1, True) # caudal, pect, cw
+            # self.spin(0.1, 0.1, True) # caudal, pect, cw
+            self.stop() # you are dead to me
+
 
 
         self.dynamics.update_ctrl(self.dorsal, self.caudal, self.pect_r, self.pect_l)

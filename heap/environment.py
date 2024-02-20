@@ -205,7 +205,9 @@ class Environment():
 
         phi = self.pos[source_id,3]
         phi_xy = [math.cos(phi), math.sin(phi)]
-        mag_phi = np.linalg.norm(phi_xy)
+        # mag_phi = np.linalg.norm(phi_xy)
+        mag_phi = 1 # Ko: this value is always one, don't know why it's calcualted
+        # print(mag_phi)
         
         candidates = robots.copy()
         for robot in candidates:

@@ -56,8 +56,8 @@ Fish = getattr(importlib.import_module('fishfood.' + experiment_file), 'Fish')
 ## Feel free to loop over multiple simulations with different parameters! ##
 
 # Experimental Parameters
-#TODO: change this back to 20 
-no_fish = 3
+no_fish = 15
+no_fish = getattr(importlib.import_module('fishfood.' + experiment_file), 'N_fish', no_fish)  # overwrite if the experiment file specify
 simulation_time = 600 # [s]
 clock_freq = 2 # [Hz]
 clock_rate = 1/clock_freq # [s]
@@ -139,5 +139,8 @@ print('Simulation data got saved in ./logfiles/{}_data.txt,\nand corresponding e
 print('Create corresponding animation by running >python animation.py {}'.format(filename))
 print('#### GOODBYE AND SEE YOU SOON AGAIN ####')
 
-# To run animation right after the code
+# Run animation right after the code
 os.system(f'python animation.py '+filename)
+
+# Run agent plots right after the code
+os.system(f'python plot_agents.py '+filename)
