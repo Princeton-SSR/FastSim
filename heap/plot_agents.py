@@ -55,10 +55,10 @@ fig.figsize=(10, 6)
 for i_trial in range(0,no_trial):
 
     # Read Experimental Parameters
-    if no_trial == 1:
-        data = np.loadtxt('./logfiles/{}_data.txt'.format(filename), delimiter=',')
-    else:
-        data = np.loadtxt('./logfiles/{}_{}_data.txt'.format(filename,i_trial), delimiter=',')
+    # if no_trial == 1:
+    #     data = np.loadtxt('./logfiles/{}_data.txt'.format(filename), delimiter=',')
+    # else:
+    data = np.loadtxt('./logfiles/{}_{}_data.txt'.format(filename,i_trial), delimiter=',')
 
     ################################################
     # plot trajectories

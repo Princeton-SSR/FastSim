@@ -58,7 +58,7 @@ no_fish = getattr(importlib.import_module('fishfood.' + experiment_file), 'N_fis
 simulation_time = 600 # [s]
 clock_freq = 2 # [Hz]
 clock_rate = 1/clock_freq # [s]
-no_trial = 10 # number of simulations performed 
+no_trial = 1 # number of simulations performed 
 filename = time.strftime("%y%m%d_%H%M%S") # date_time
 
 # Fish Specifications

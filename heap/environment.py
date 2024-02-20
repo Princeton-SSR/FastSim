@@ -140,8 +140,8 @@ class Environment():
     def get_robots(self, source_id, visual_noise=False):
         """Provides visible neighbors and relative positions and distances to a fish
         """
-        # robots = set(range(self.no_robots)) # all robots
-        robots = {0} # only the leaders have leds
+        robots = set(range(self.no_robots)) # all robots
+        # robots = {0} # only the leaders have leds
         robots.discard(source_id) # discard self
 
         rel_pos = np.reshape(self.rel_pos[source_id], (self.no_robots, self.no_states))
@@ -380,7 +380,7 @@ class Environment():
         add_reflections = 0
         all_blobs = np.empty((3,0))
 
-        tmp = np.empty((3,0))
+        # tmp = np.empty((3,0))
         
         leds = []
         for robot in robots:
@@ -433,4 +433,6 @@ class Environment():
         # print("detected relative LEDs")
         # print(all_blobs[:,p])
 
-        return all_blobs[:,p]
+        # return all_blobs[:,p]
+        return all_blobs
+

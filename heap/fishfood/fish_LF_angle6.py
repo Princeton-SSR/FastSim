@@ -437,7 +437,7 @@ class Fish():
             # self.stop()
             # self.forward(magnitude)
 
-            self.spin( 0.1, 0.08, True) # caudal, pect, cw
+            self.spin( 1, 0.8, True) # caudal, pect, cw
             self.depth_ctrl_psensor(250,1) # target depth, dorsal freq
 
         elif self.id == 1 & leds.size != 0: # follower and leader can be seen 
@@ -484,9 +484,9 @@ class Fish():
             # print(np.linalg.norm(heading_vector))
             # input()
             
-            # calculate the relative position of the leader from its LEDs
-            r_move_g = 0.5*(triplet[:,0]+triplet[:,1]).transpose()
-
+            # calculate the relative position of the leader from its LEDs (centroid is the same location as the 1st LED)
+            r_move_g = triplet[:,0].transpose()
+            
             # calculate the distance with respect to the leader
             rel_dist = np.linalg.norm(r_move_g[0:2])
 
@@ -561,7 +561,7 @@ class Fish():
             #     # print(self.translate( triplet[:,2], heading_vector, -90, distance) == new_leds[:,2])
             ##################
             # new code block 
-            new_pos = self.translate( r_move_g, heading_vector, -90, safe_distance)  #   pos, vector, keep_angle,distance)
+            new_pos = self.translate( r_move_g, heading_vector, 90, safe_distance)  #   pos, vector, keep_angle,distance)
             magnitude = np.tanh(np.linalg.norm(new_pos)/600);
             self.home(new_pos, magnitude)
 
