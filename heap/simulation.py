@@ -33,14 +33,11 @@ from dynamics import Dynamics
 from lib_heap import Heap
 import os
 
-random.seed(1)
-np.random.seed(10)
-
-def log_meta():
+def log_meta(fn):
     """Logs the meta data of the experiment
     """
-    meta = {'Experiment': experiment_file, 'Number of fishes': no_fish, 'Simulation time [s]': simulation_time, 'Clock frequency [Hz]': clock_freq, 'Arena [mm]': arena_list, 'Visual range [mm]': v_range, 'Width of blindspot [mm]': w_blindspot, 'Radius of blocking sphere [mm]': r_sphere, 'Visual noise magnitude [% of distance]': n_magnitude}
-    with open('./logfiles/{}_meta.txt'.format(filename), 'w') as f:
+    meta = {'Experiment': experiment_file, 'Number of fishes': no_fish, 'Number of trials': no_trial, 'Simulation time [s]': simulation_time, 'Clock frequency [Hz]': clock_freq, 'Arena [mm]': arena_list, 'Visual range [mm]': v_range, 'Width of blindspot [mm]': w_blindspot, 'Radius of blocking sphere [mm]': r_sphere, 'Visual noise magnitude [% of distance]': n_magnitude}
+    with open('./logfiles/{}_meta.txt'.format(fn), 'w') as f:
         json.dump(meta, f, indent=2)
 
 # Read Experiment Description
@@ -61,6 +58,8 @@ no_fish = getattr(importlib.import_module('fishfood.' + experiment_file), 'N_fis
 simulation_time = 600 # [s]
 clock_freq = 2 # [Hz]
 clock_rate = 1/clock_freq # [s]
+no_trial = 10 # number of simulations performed 
+filename = time.strftime("%y%m%d_%H%M%S") # date_time
 
 # Fish Specifications
 v_range=5000 # visual range, [mm]
@@ -77,70 +76,82 @@ arena_list = [10000,10000,500]
 arena = np.array(arena_list)
 arena_center = arena / 2.0
 
-# Standard Surface Initialization
-initial_spread = 2000
-pos = np.zeros((no_fish, 4))
-vel = np.zeros((no_fish, 4))
-pos[:,:2] = initial_spread * (np.random.rand(no_fish, 2) - 0.5) + arena_center[:2] # x,y
-pos[:,2] = 10 * np.random.rand(1, no_fish) # z, all fish at same noise-free depth results in LJ lock
-pos[:,3] = 2*math.pi * (np.random.rand(1, no_fish) - 0.5) # phi
+# repeating trials
+for i_trial in range(no_trial):
 
-# Create Environment, Dynamics, And Heap
-environment = Environment(pos, vel, fish_specs, arena)
-dynamics = Dynamics(environment)
-H = Heap(no_fish)
+    # seed random generator
+    random.seed(i_trial) # for heap
+    np.random.seed(i_trial) # for initial condition
 
-# Create Fish Instances And Insert Into Heap
-fishes = []
-for fish_id in range(no_fish):
-    clock = random.gauss(clock_rate, 0.1*clock_rate)
-    fishes.append(Fish(fish_id, dynamics, environment))
-    H.insert(fish_id, clock)
+    # Standard Surface Initialization
+    initial_spread = 5000
+    pos = np.zeros((no_fish, 4))
+    vel = np.zeros((no_fish, 4))
+    pos[:,:2] = initial_spread * (np.random.rand(no_fish, 2) - 0.5) + arena_center[:2] # x,y
+    pos[:,2] = 10 * np.random.rand(1, no_fish) # z, all fish at same noise-free depth results in LJ lock
+    pos[:,3] = 2*math.pi * (np.random.rand(1, no_fish) - 0.5) # phi
 
-# Simulate
-print('#### WELCOME TO BLUESIM ####')
-print('Progress:', end=' ', flush=True)
-t_start = time.time()
-simulation_steps = no_fish*simulation_time*clock_freq # overall
-steps = 0
-prog_incr = 0.1
+    # fix leader pos
+    pos[0,:2] = arena_center[:2]
+    pos[0,2] = 0
+    pos[0,3] = 0
 
-# print("Initial positions [x,y,z,theta]")
-# print(pos)
+    # Create Environment, Dynamics, And Heap
+    environment = Environment(pos, vel, fish_specs, arena)
+    dynamics = Dynamics(environment)
+    H = Heap(no_fish)
 
-# Main block for eular integration 
-# Note that the "step" here is not exactly the time step. For each time step, there are no_fish steps
-while True:
+    # Create Fish Instances And Insert Into Heap
+    fishes = []
+    for fish_id in range(no_fish):
+        clock = random.gauss(clock_rate, 0.1*clock_rate)
+        fishes.append(Fish(fish_id, dynamics, environment))
+        H.insert(fish_id, clock)
 
-    # Displaying and keeping track of progress
-    progress = steps/simulation_steps
-    if progress >= prog_incr:
-        print('{}%'.format(round(prog_incr*100)), end=' ', flush=True)
-        prog_incr += 0.1
-    if steps >= simulation_steps:
-            break
+    # Simulate
+    print('#### WELCOME TO BLUESIM ####')
+    print("Start trial "+str(i_trial+1))
+    print('Progress:', end=' ', flush=True)
+    t_start = time.time()
+    simulation_steps = no_fish*simulation_time*clock_freq # overall
+    steps = 0
+    prog_incr = 0.1
 
-    # time step for one fish 
-    (uuid, event_time) = H.delete_min() # pull a fish from the heap
-    duration = random.gauss(clock_rate, 0.1*clock_rate)
-    fishes[uuid].run(duration) # RUN THE TIMESTEP FOR THE FISH
-    H.insert(uuid, event_time + duration) # return the fish to the heap after updating its clock
+    # print("Initial positions [x,y,z,theta]")
+    # print(pos)
 
-    steps += 1
+    # Main block for eular integration 
+    # Note that the "step" here is not exactly the time step. For each time step, there are no_fish steps
+    while True:
 
-print('| Duration: {} sec\n -'.format(round(time.time()-t_start)))
+        # Displaying and keeping track of progress
+        progress = steps/simulation_steps
+        if progress >= prog_incr:
+            print('{}%'.format(round(prog_incr*100)), end=' ', flush=True)
+            prog_incr += 0.1
+        if steps >= simulation_steps:
+                break
 
-# Save Data
-filename = time.strftime("%y%m%d_%H%M%S") # date_time
-environment.log_to_file(filename)
-log_meta()
+        # time step for one fish 
+        (uuid, event_time) = H.delete_min() # pull a fish from the heap
+        duration = random.gauss(clock_rate, 0.1*clock_rate)
+        fishes[uuid].run(duration) # RUN THE TIMESTEP FOR THE FISH
+        H.insert(uuid, event_time + duration) # return the fish to the heap after updating its clock
 
-print('Simulation data got saved in ./logfiles/{}_data.txt,\nand corresponding experimental info in ./logfiles/{}_meta.txt.\n -'.format(filename, filename))
-print('Create corresponding animation by running >python animation.py {}'.format(filename))
-print('#### GOODBYE AND SEE YOU SOON AGAIN ####')
+        steps += 1
 
-# Run animation right after the code
-os.system(f'python animation.py '+filename)
+    print('| Duration: {} sec\n -'.format(round(time.time()-t_start)))
+
+    # Save Data
+    environment.log_to_file(filename+"_"+str(i_trial))
+    log_meta(filename+"_"+str(i_trial))
+
+    print('Simulation data got saved in ./logfiles/{}_data.txt,\nand corresponding experimental info in ./logfiles/{}_meta.txt.\n -'.format(filename, filename))
+    # print('Create corresponding animation by running >python animation.py {}'.format(filename))
+    # print('#### GOODBYE AND SEE YOU SOON AGAIN ####')
+
+    # Run animation right after the code
+    os.system(f'python animation.py '+filename+"_"+str(i_trial))
 
 # Run agent plots right after the code
 os.system(f'python plot_agents.py '+filename)

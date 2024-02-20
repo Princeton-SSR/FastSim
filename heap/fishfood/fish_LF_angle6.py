@@ -503,62 +503,69 @@ class Fish():
             # rel_dist = dist[0]
             ########################################################################
             
-            if rel_dist <= safe_distance:
-                # print('in zone 3: dead zone')
-                magnitude = 0
-                self.wait(0.1) # move backward, set pect freq
-                # self.depth_ctrl_vision(r_move_g) 
+            # if rel_dist <= safe_distance:
+            #     # print('in zone 3: dead zone')
+            #     magnitude = 0
+            #     self.wait(0.1) # move backward, set pect freq
+            #     # self.depth_ctrl_vision(r_move_g) 
 
-            elif rel_dist > approach_distance: 
-                # print('in zone 1: approach zone')
-                magnitude = 0.4
+            # elif rel_dist > approach_distance: 
+            #     # print('in zone 1: approach zone')
+            #     magnitude = 0.4
 
-                self.home(r_move_g, magnitude)
-                # self.depth_ctrl_vision(r_move_g) 
+            #     self.home(r_move_g, magnitude)
+            #     # self.depth_ctrl_vision(r_move_g) 
 
-            else: 
-                # print('in zone 2: follow zone')
-                magnitude = 0.3
+            # else: 
+            #     # print('in zone 2: follow zone')
+            #     magnitude = 0.1
 
-                distance = safe_distance
-                # set angle to -90 to follow on the right (outside), 90 to follow on the left (inside)
-                new_pos = self.translate( r_move_g, heading_vector, -90, distance)  #   pos, vector, keep_angle,distance)
+            #     distance = safe_distance
+            #     # set angle to -90 to follow on the right (outside), 90 to follow on the left (inside)
+            #     new_pos = self.translate( r_move_g, heading_vector, 90, distance)  #   pos, vector, keep_angle,distance)
+            #     self.home(new_pos, magnitude)
 
-                # print("debug r_move_g_leds")
-                # print("led1")
-                # print(triplet[:,0])
-                # print("led1 translation")
-                # print(self.translate( triplet[:,0], heading_vector, -90, distance))
+            #     # print("debug r_move_g_leds")
+            #     # print("led1")
+            #     # print(triplet[:,0])
+            #     # print("led1 translation")
+            #     # print(self.translate( triplet[:,0], heading_vector, -90, distance))
 
-                # print("led2")
-                # print(triplet[:,1])
-                # print("led2 translation")
-                # print(self.translate( triplet[:,1], heading_vector, -90, distance))
+            #     # print("led2")
+            #     # print(triplet[:,1])
+            #     # print("led2 translation")
+            #     # print(self.translate( triplet[:,1], heading_vector, -90, distance))
 
-                # print("led3")
-                # print(triplet[:,2])
-                # print("led3 translation")
-                # print(self.translate( triplet[:,2], heading_vector, -90, distance))
+            #     # print("led3")
+            #     # print(triplet[:,2])
+            #     # print("led3 translation")
+            #     # print(self.translate( triplet[:,2], heading_vector, -90, distance))
 
-                # new_leds = np.transpose (self.translate( np.transpose(triplet), heading_vector, 90, distance) )
-                # print("r_move_g")
-                # print(r_move_g)
+            #     # new_leds = np.transpose (self.translate( np.transpose(triplet), heading_vector, 90, distance) )
+            #     # print("r_move_g")
+            #     # print(r_move_g)
 
-                self.home(new_pos, magnitude)
-                # print("new_pos")
-                # print(new_pos)
+            #     # print("new_pos")
+            #     # print(new_pos)
 
-                # print("new led pos")
-                # print(new_leds)
+            #     # print("new led pos")
+            #     # print(new_leds)
 
-                # print("avg new led pos")
+            #     # print("avg new led pos")
 
-                # print(np.mean(new_leds, axis=1))
+            #     # print(np.mean(new_leds, axis=1))
                 
-                # print("if matched?")
-                # print(self.translate( triplet[:,0], heading_vector, -90, distance) == new_leds[:,0])
-                # print(self.translate( triplet[:,1], heading_vector, -90, distance) == new_leds[:,1])
-                # print(self.translate( triplet[:,2], heading_vector, -90, distance) == new_leds[:,2])
+            #     # print("if matched?")
+            #     # print(self.translate( triplet[:,0], heading_vector, -90, distance) == new_leds[:,0])
+            #     # print(self.translate( triplet[:,1], heading_vector, -90, distance) == new_leds[:,1])
+            #     # print(self.translate( triplet[:,2], heading_vector, -90, distance) == new_leds[:,2])
+            ##################
+            # new code block 
+            new_pos = self.translate( r_move_g, heading_vector, -90, safe_distance)  #   pos, vector, keep_angle,distance)
+            magnitude = np.tanh(np.linalg.norm(new_pos)/600);
+            self.home(new_pos, magnitude)
+
+            ##################
 
             self.depth_ctrl_vision(r_move_g) 
             # self.depth_ctrl_psensor(500,1) # target depth, dorsal freq
