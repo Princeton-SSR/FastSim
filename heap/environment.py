@@ -380,17 +380,16 @@ class Environment():
         add_reflections = 0
         all_blobs = np.empty((3,0))
 
-        # tmp = np.empty((3,0))
-        
+        # H. Ko: make leds of fixed size. Blocked LEDs will have nans
         leds = []
-        for robot in robots:
-            leds.append(self.leds_pos[robot])
+        for robot in range(self.no_robots):
+            if robot in robots:
+                leds.append(self.leds_pos[robot])
+            else:
+                leds.append(np.zeros((3,3))*np.nan)
 
         leds_list = list(np.transpose(np.hstack(leds)))
 
-        # print(" in enviornment/calc_relative_leds")
-        # print("leds xyz in abs frame (without reflection)")
-        # print(np.array(leds_list))
 
         if add_reflections:
             refl_list = self.calc_reflections(leds_list)

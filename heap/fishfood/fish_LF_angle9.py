@@ -22,7 +22,7 @@ import warnings
 
 U_LED_DX = 86 # [mm] leds x-distance on BlueBot
 U_LED_DZ = 86 # [mm] leds z-distance on BlueBot
-N_fish = 7
+N_fish = 8
 class Fish():
     """Bluebot instance
     """
@@ -440,14 +440,18 @@ class Fish():
         # print("in move, rel_pos\n",rel_pos)
         # print("in move, self.id", self.id)
 
-        if self.id == 0 or self.id == 1: # leader
+        no_leader = 2
+        if self.id < no_leader: # leader
             # print("************at leader************")
             magnitude = 0.2
 
             # self.stop()
             # self.forward(magnitude)
+            if self.id == 0:
+                self.spin( 0.1, 0.08, True) # caudal, pect, cw
+            else:
+                self.spin( 0.1, 0.08, False) # caudal, pect, cw
 
-            self.spin( 0.1, 0.08, True) # caudal, pect, cw
             self.depth_ctrl_psensor(250,1) # target depth, dorsal freq
 
         elif leds.size != 0: # follower
@@ -457,32 +461,62 @@ class Fish():
             #     print(leds)
             #     print(leds[:3,:3])
             #     input()
+            # print(leds.shape)
+            heading_vector = np.zeros((3,no_leader))
+            r_move_g = np.zeros((3,no_leader))
+            rel_dist = np.zeros((1,no_leader))
 
-            # remove refection. Input leds (relative position in global frame)
-            leds = leds[:3,:3] # leader's led
+            for i_leader in range(no_leader):
+                # print(i_leader)
+                # remove refection. Input leds (relative position in global frame)
+                l_leds = leds[:3,i_leader*3:i_leader*3+3] # leader's led
+                # print(l_leds)
 
-            # leds = self.remove_reflections(l_leds, 3) 
-            leds = self.parsing(leds)  # output leds in qpr in robot's frame
-            # leds = self.remove_reflections(leds, 3)
-            duplet = self._pqr_to_xyz(leds)  # xyz of led_1 and led_2
-            b3_pqr = leds[:,-1]
-            triplet = self._pqr_3_to_xyz(duplet, b3_pqr)     
-            orientation = self._orientation(triplet)    
-            heading_vector = triplet[:,2] - triplet[:,0]
-            # print(" heading_vector from triplet,", heading_vector)
-            # print(np.linalg.norm(heading_vector))
+                if l_leds.any == nan: # the leader is blocked
+                    # calculate the relative position of the leader from its LEDs (centroid is the same location as the 1st LED)
+                    r_move_g[:,i_leader] = np.zeros(3)
+                    heading_vector[:,i_leader] = np.zeros(3)
+                    rel_dist[:,i_leader] = 10000
+
+                else: 
+
+                    # leds = self.remove_reflections(l_leds, 3) 
+                    l_leds = self.parsing(l_leds)  # output l_leds in qpr in robot's frame
+
+                    # print(l_leds)
+                    # l_leds = self.remove_reflections(l_leds, 3)
+                    duplet = self._pqr_to_xyz(l_leds)  # xyz of led_1 and led_2
+                    b3_pqr = l_leds[:,-1]
+                    triplet = self._pqr_3_to_xyz(duplet, b3_pqr)     
+                    # print(triplet)
+
+                    # calculate the relative position of the leader from its LEDs (centroid is the same location as the 1st LED)
+                    r_move_g[:,i_leader] = triplet[:,0].transpose()
+                    heading_vector[:,i_leader] = triplet[:,2] - triplet[:,0]
+                    rel_dist[:,i_leader] = np.linalg.norm(r_move_g[1:2,i_leader])
+
+            # print(leds)
+
+
+            # choose the leader that is the closest
+            i_leader = np.argmin(rel_dist)
+
+            # print(r_move_g)
+            # print(heading_vector)
+            # print(rel_dist)
+            # print(i_leader)
+            # i_leader = 0
             # input()
-            
-            # calculate the relative position of the leader from its LEDs (centroid is the same location as the 1st LED)
-            r_move_g = triplet[:,0].transpose()
-            
-            # calculate the distance with respect to the leader
-            rel_dist = np.linalg.norm(r_move_g[0:2])
-
-            new_pos = self.translate( r_move_g, heading_vector,  self.id*60 , safe_distance)  #   pos, vector, keep_angle,distance)
+            # if i_leader == 1:
+            if r_move_g.any == 0:
+                input()
+                print('going to the second leader')
+            # calculate target location and the behavior to go towards it 
+            new_pos = self.translate( r_move_g[:,i_leader], heading_vector[:,i_leader],  self.id*60 , safe_distance)  #   pos, vector, keep_angle,distance)
             magnitude = np.tanh(np.linalg.norm(new_pos)/600);
             self.home(new_pos, magnitude)
-            self.depth_ctrl_vision(r_move_g) 
+            self.depth_ctrl_vision(r_move_g[:,i_leader]) 
+
         else:
             # print(self.id)
             ## turn clockwise if true, counter-clockwise if false?
