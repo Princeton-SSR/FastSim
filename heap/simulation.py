@@ -50,8 +50,14 @@ except:
 #import Fish class directly from module specified by experiment type
 Fish = getattr(importlib.import_module('fishfood.' + experiment_file), 'Fish') 
 
-## Feel free to loop over multiple simulations with different parameters! ##
+# print experiment name
+print(' ')
+print('########### WELCOME TO BLUESIM ###########')
+print('Experiment: '+getattr(importlib.import_module('fishfood.' + experiment_file), 'EXPERIMENT_NAME', 'unnamed'))
+print('##########################################')
+print(' ')
 
+## Feel free to loop over multiple simulations with different parameters! ##
 # Experimental Parameters
 no_fish = 15
 no_fish = getattr(importlib.import_module('fishfood.' + experiment_file), 'N_fish', no_fish)  # overwrite if the experiment file specify
@@ -109,8 +115,7 @@ for i_trial in range(no_trial):
         H.insert(fish_id, clock)
 
     # Simulate
-    print('#### WELCOME TO BLUESIM ####')
-    print("Start trial "+str(i_trial+1))
+    print("Starting trial "+str(i_trial+1)+':\n')
     print('Progress:', end=' ', flush=True)
     t_start = time.time()
     simulation_steps = no_fish*simulation_time*clock_freq # overall

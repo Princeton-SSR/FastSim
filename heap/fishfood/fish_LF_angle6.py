@@ -23,6 +23,7 @@ import warnings
 U_LED_DX = 86 # [mm] leds x-distance on BlueBot
 U_LED_DZ = 86 # [mm] leds z-distance on BlueBot
 N_fish = 2
+EXPERIMENT_NAME = 'One fish and a follower'
 
 class Fish():
     """Bluebot instance
@@ -429,7 +430,6 @@ class Fish():
         safe_distance = self.dynamics.l_robot * 1000 * 3 # mm
         approach_distance = self.dynamics.l_robot * 1000 * 10
 
-
         if self.id == 0: # leader
             # print("************at leader************")
             # magnitude = 0.2
@@ -440,7 +440,7 @@ class Fish():
             self.spin( 1, 0.8, True) # caudal, pect, cw
             self.depth_ctrl_psensor(250,1) # target depth, dorsal freq
 
-        elif self.id == 1 & leds.size != 0: # follower and leader can be seen 
+        elif self.id == 1 and leds.size != 0: # follower and leader can be seen 
             # print("************at follower************")
             # print("leds for all robots")
             # print(abs_leds)
@@ -463,10 +463,11 @@ class Fish():
             # remove refection. Input leds (relative position in global frame)
             # leds = self.remove_reflections(leds, 3) 
             # print("parsing")
+            leds = leds[:3,:3] # leader's led
+            
             leds = self.parsing(leds)  # output leds in qpr in robot's frame
             # print(self.calc_relative_pitch(leds))
             # leds = self.remove_reflections(leds, 3)
-            # print(leds)
 
             duplet = self._pqr_to_xyz(leds)  # xyz of led_1 and led_2
             # print("duplet (led1 and led2) xyz is (robot frame)")

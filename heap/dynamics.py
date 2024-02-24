@@ -129,6 +129,8 @@ class Dynamics():
             g_P_r = g_P_r + deltat*np.transpose(g_Pdot_r)
 
         # Conversion to millimeter and appendage of phi and vphi
+        # print(m_to_mm * g_P_r)
+        # print(np.array([phi]))
         pos = np.concatenate((m_to_mm * g_P_r, np.array([phi])), axis=0)
         vel = np.concatenate((m_to_mm * g_Pdot_r, np.array([vphi])), axis=0)
 

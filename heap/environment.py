@@ -150,7 +150,13 @@ class Environment():
         self.blind_spot(source_id, robots, rel_pos)
         self.occlusions(source_id, robots, rel_pos)
 
+        # print('#################')
+        # print(robots)
         leds = self.calc_relative_leds(source_id, robots)
+
+        # print("in move, leds\n",leds)
+        # print(source_id)
+        # print(robots)
 
         abs_leds = self.leds_pos
 
@@ -373,8 +379,8 @@ class Environment():
     def calc_relative_leds(self, source_id, robots):
         """Calculates the relative position of all detectable leds and adds their reflection if add_reflections boolean is set to True
         """
-        if not robots:
-            return np.empty((3,0))
+        # if not robots:
+        #     return np.empty((3,0))
 
         # add_reflections = True
         add_reflections = 0
@@ -389,6 +395,7 @@ class Environment():
                 leds.append(np.zeros((3,3))*np.nan)
 
         leds_list = list(np.transpose(np.hstack(leds)))
+
 
 
         if add_reflections:
@@ -421,7 +428,10 @@ class Environment():
         # # print(np.array(tmp) )
         # print("leds pqr in robot frame")
         # print(all_blobs)
-
+        # if all_blobs.shape == 0:
+        # print('leds in env')
+        # print(all_blobs)
+        # input()
     
         # # print(self.leds_pos)
         # print("all_blobs")

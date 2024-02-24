@@ -23,6 +23,8 @@ import warnings
 U_LED_DX = 86 # [mm] leds x-distance on BlueBot
 U_LED_DZ = 86 # [mm] leds z-distance on BlueBot
 N_fish = 8
+EXPERIMENT_NAME = 'Six followers next to two leaders'
+
 class Fish():
     """Bluebot instance
     """
@@ -454,11 +456,11 @@ class Fish():
 
             self.depth_ctrl_psensor(250,1) # target depth, dorsal freq
 
-        elif leds.size != 0: # follower
+        else: # follower
             # print("************at follower 1************")
             # if self.id==1:
             #     print(robots)
-            #     print(leds)
+            # print(leds)
             #     print(leds[:3,:3])
             #     input()
             # print(leds.shape)
@@ -472,7 +474,7 @@ class Fish():
                 l_leds = leds[:3,i_leader*3:i_leader*3+3] # leader's led
                 # print(l_leds)
 
-                if l_leds.any == nan: # the leader is blocked
+                if np.any(np.isnan(l_leds)): # the leader is blocked
                     # calculate the relative position of the leader from its LEDs (centroid is the same location as the 1st LED)
                     r_move_g[:,i_leader] = np.zeros(3)
                     heading_vector[:,i_leader] = np.zeros(3)
@@ -493,7 +495,7 @@ class Fish():
                     # calculate the relative position of the leader from its LEDs (centroid is the same location as the 1st LED)
                     r_move_g[:,i_leader] = triplet[:,0].transpose()
                     heading_vector[:,i_leader] = triplet[:,2] - triplet[:,0]
-                    rel_dist[:,i_leader] = np.linalg.norm(r_move_g[1:2,i_leader])
+                    rel_dist[:,i_leader] = np.linalg.norm(r_move_g[0:2,i_leader])
 
             # print(leds)
 
@@ -504,25 +506,26 @@ class Fish():
             # print(r_move_g)
             # print(heading_vector)
             # print(rel_dist)
+            # print(heading_vector)
             # print(i_leader)
-            # i_leader = 0
             # input()
-            # if i_leader == 1:
-            if r_move_g.any == 0:
-                input()
-                print('going to the second leader')
-            # calculate target location and the behavior to go towards it 
-            new_pos = self.translate( r_move_g[:,i_leader], heading_vector[:,i_leader],  self.id*60 , safe_distance)  #   pos, vector, keep_angle,distance)
-            magnitude = np.tanh(np.linalg.norm(new_pos)/600);
-            self.home(new_pos, magnitude)
-            self.depth_ctrl_vision(r_move_g[:,i_leader]) 
+            # print('going to the second leader')
+            
+            # if the closest leader is visible 
+            if np.any(heading_vector[:,i_leader]) != 0:
 
-        else:
-            # print(self.id)
-            ## turn clockwise if true, counter-clockwise if false?
+                # calculate target location and the behavior to go towards it 
+                new_pos = self.translate( r_move_g[:,i_leader], heading_vector[:,i_leader],  self.id*60 , safe_distance)  #   pos, vector, keep_angle,distance)
+                magnitude = np.tanh(rel_dist[0,i_leader]/600);
+                self.home(new_pos, magnitude)
+                self.depth_ctrl_vision(r_move_g[:,i_leader]) 
 
-            # self.spin(0.1, 0.1, True) # caudal, pect, cw
-            self.stop() # you are dead to me
+            else:
+                # print(self.id)
+                ## turn clockwise if true, counter-clockwise if false?
+
+                # self.spin(0.1, 0.1, True) # caudal, pect, cw
+                self.stop() # you are dead to me
 
 
 

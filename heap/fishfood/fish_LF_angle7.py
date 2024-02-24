@@ -23,6 +23,8 @@ import warnings
 U_LED_DX = 86 # [mm] leds x-distance on BlueBot
 U_LED_DZ = 86 # [mm] leds z-distance on BlueBot
 N_fish = 3
+EXPERIMENT_NAME = 'Two followers next to a leader'
+
 class Fish():
     """Bluebot instance
     """
@@ -41,7 +43,6 @@ class Fish():
         self.dorsal = 0
         self.pect_r = 0
         self.pect_l = 0
-
 
     def run(self, duration):
         """(1) Get neighbors from environment, (2) move accordingly, (3) update your state in environment
