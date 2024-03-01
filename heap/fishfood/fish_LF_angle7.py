@@ -69,7 +69,7 @@ class Fish():
         pitch = np.arctan2(r_move_g[2], sqrt(r_move_g[0]**2 + r_move_g[1]**2)) * 180 / pi
 
         if pitch > pitch_range:
-            self.dorsal = 1
+            self.dorsal = 0.1
         elif pitch < -pitch_range:
             self.dorsal = 0
 
@@ -449,7 +449,7 @@ class Fish():
             # self.forward(magnitude)
 
             self.spin( 0.1, 0.08, True) # caudal, pect, cw
-            self.depth_ctrl_psensor(250,1) # target depth, dorsal freq
+            self.depth_ctrl_psensor(250,0.1) # target depth, dorsal freq
 
         elif self.id == 1  and leds.size != 0: # follower
             # print("************at follower 1************")

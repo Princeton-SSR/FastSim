@@ -25,11 +25,11 @@ class Dynamics():
         self.C_dx_fwd = 0.5 # c.f. cone
         self.C_dx_bwd = 1.0 # c.f. cone
         self.C_dy_static = 2.1 # c.f. flat plate
-        self.C_dz = 10 # increased from 0.7 by Hungtang
+        self.C_dz = 100 # increased from 0.7 by Hungtang
         self.C_dphi_static = 1.0
         self.pect_dist = 0.055 # [m]
         self.pect_angle = pi / 6 # [rad]
-        self.F_buoy = 0.010 # [N]
+        self.F_buoy = 0.010/10 # [N]
         self.vx_max = 0.160 # [m/s]
 
         # Initialize Control

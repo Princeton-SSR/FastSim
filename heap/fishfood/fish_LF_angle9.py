@@ -23,6 +23,8 @@ import warnings
 U_LED_DX = 86 # [mm] leds x-distance on BlueBot
 U_LED_DZ = 86 # [mm] leds z-distance on BlueBot
 N_fish = 8
+N_leader = 2
+
 EXPERIMENT_NAME = 'Six followers next to two leaders'
 
 class Fish():
@@ -70,7 +72,7 @@ class Fish():
         pitch = np.arctan2(r_move_g[2], sqrt(r_move_g[0]**2 + r_move_g[1]**2)) * 180 / pi
 
         if pitch > pitch_range:
-            self.dorsal = 1
+            self.dorsal = 0.1
         elif pitch < -pitch_range:
             self.dorsal = 0
 
@@ -442,8 +444,7 @@ class Fish():
         # print("in move, rel_pos\n",rel_pos)
         # print("in move, self.id", self.id)
 
-        no_leader = 2
-        if self.id < no_leader: # leader
+        if self.id < N_leader: # leader
             # print("************at leader************")
             magnitude = 0.2
 
@@ -454,7 +455,7 @@ class Fish():
             else:
                 self.spin( 0.1, 0.08, False) # caudal, pect, cw
 
-            self.depth_ctrl_psensor(250,1) # target depth, dorsal freq
+            self.depth_ctrl_psensor(250,0.1) # target depth, dorsal freq
 
         else: # follower
             # print("************at follower 1************")
@@ -464,11 +465,11 @@ class Fish():
             #     print(leds[:3,:3])
             #     input()
             # print(leds.shape)
-            heading_vector = np.zeros((3,no_leader))
-            r_move_g = np.zeros((3,no_leader))
-            rel_dist = np.zeros((1,no_leader))
+            heading_vector = np.zeros((3,N_leader))
+            r_move_g = np.zeros((3,N_leader))
+            rel_dist = np.zeros((1,N_leader))
 
-            for i_leader in range(no_leader):
+            for i_leader in range(N_leader):
                 # print(i_leader)
                 # remove refection. Input leds (relative position in global frame)
                 l_leds = leds[:3,i_leader*3:i_leader*3+3] # leader's led

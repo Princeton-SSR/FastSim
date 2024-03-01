@@ -36,7 +36,7 @@ import os
 def log_meta(fn):
     """Logs the meta data of the experiment
     """
-    meta = {'Experiment': experiment_file, 'Number of fishes': no_fish, 'Number of trials': no_trial, 'Simulation time [s]': simulation_time, 'Clock frequency [Hz]': clock_freq, 'Arena [mm]': arena_list, 'Visual range [mm]': v_range, 'Width of blindspot [mm]': w_blindspot, 'Radius of blocking sphere [mm]': r_sphere, 'Visual noise magnitude [% of distance]': n_magnitude}
+    meta = {'Experiment': experiment_file, 'Number of fishes': no_fish, 'Number of leaders': no_leader, 'Number of trials': no_trial, 'Simulation time [s]': simulation_time, 'Clock frequency [Hz]': clock_freq, 'Arena [mm]': arena_list, 'Visual range [mm]': v_range, 'Width of blindspot [mm]': w_blindspot, 'Radius of blocking sphere [mm]': r_sphere, 'Visual noise magnitude [% of distance]': n_magnitude}
     with open('./logfiles/{}_meta.txt'.format(fn), 'w') as f:
         json.dump(meta, f, indent=2)
 
@@ -59,8 +59,10 @@ print(' ')
 
 ## Feel free to loop over multiple simulations with different parameters! ##
 # Experimental Parameters
-no_fish = 15
+no_fish = 15 # default 
 no_fish = getattr(importlib.import_module('fishfood.' + experiment_file), 'N_fish', no_fish)  # overwrite if the experiment file specify
+no_leader = 1 # default 
+no_leader = getattr(importlib.import_module('fishfood.' + experiment_file), 'N_leader', no_leader)  # overwrite if the experiment file specify
 simulation_time = 600 # [s]
 clock_freq = 2 # [Hz]
 clock_rate = 1/clock_freq # [s]
@@ -156,7 +158,15 @@ for i_trial in range(no_trial):
     # print('#### GOODBYE AND SEE YOU SOON AGAIN ####')
 
     # Run animation right after the code
+    t_start = time.time()
     os.system(f'python animation.py '+filename+"_"+str(i_trial))
+    print('| Duration: {} sec\n -'.format(round(time.time()-t_start)))
+
+
+    # Run animation saving right after the code
+    t_start = time.time()
+    os.system(f'python recording.py '+filename+"_"+str(i_trial))
+    print('| Duration: {} sec\n -'.format(round(time.time()-t_start)))
 
 # Run agent plots right after the code
 os.system(f'python plot_agents.py '+filename)
