@@ -89,9 +89,14 @@ class Environment():
         """Initializes fish positions and velocities
         """
         # Restrict initial positions to arena size
-        self.pos[:,0] = np.clip(self.pos[:,0], 0, self.arena_size[0])
-        self.pos[:,1] = np.clip(self.pos[:,1], 0, self.arena_size[1])
+        # self.pos[:,0] = np.clip(self.pos[:,0], 0, self.arena_size[0])
+        # self.pos[:,1] = np.clip(self.pos[:,1], 0, self.arena_size[1])
         self.pos[:,2] = np.clip(self.pos[:,2], 0, self.arena_size[2])
+
+        # H.KO: change to cylindrical arenas
+        r = np.linalg.norm(self.pos[:2])
+        self.pos[:,0] = self.pos[:,0]/r*np.clip(r, 0, self.arena_size[0]/2)
+        self.pos[:,1] = self.pos[:,1]/r*np.clip(r, 0, self.arena_size[0]/2)    
 
         # Initial relative positions
         a_ = np.reshape(self.pos, (1, self.no_robots*self.no_states))
@@ -106,11 +111,16 @@ class Environment():
         """Updates a fish state and affected realtive positions and distances
         """
         # Position and velocity
-        self.pos[source_id,0] = np.clip(pos[0], 0, self.arena_size[0])
-        self.pos[source_id,1] = np.clip(pos[1], 0, self.arena_size[1])
+        # self.pos[source_id,0] = np.clip(pos[0], 0, self.arena_size[0])
+        # self.pos[source_id,1] = np.clip(pos[1], 0, self.arena_size[1])
         self.pos[source_id,2] = np.clip(pos[2], 0, self.arena_size[2])
         self.pos[source_id,3] = pos[3]
         self.vel[source_id,:] = vel
+
+        # H.KO: change to cylindrical arenas
+        r = np.linalg.norm(pos[:2])
+        self.pos[source_id,0] = pos[0]/r*np.clip(r, 0, self.arena_size[0]/2)
+        self.pos[source_id,1] = pos[1]/r*np.clip(r, 0, self.arena_size[0]/2)        
 
         # Relative positions
         pos_others = np.reshape(self.pos, (1,self.no_robots*self.no_states))

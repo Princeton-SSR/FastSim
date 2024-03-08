@@ -427,8 +427,8 @@ class Fish():
         """      
 
         # Specify a distance range within which followers cease their actuation.
-        safe_distance = self.dynamics.l_robot * 1000 * 3 # mm
-        approach_distance = self.dynamics.l_robot * 1000 * 10
+        safe_distance = self.dynamics.l_robot * 1000 * 3 # mm   # 100/50 mm
+        approach_distance = self.dynamics.l_robot * 1000 * 10   # 1000 mm
 
         if self.id == 0: # leader
             # print("************at leader************")
@@ -437,7 +437,7 @@ class Fish():
             # self.stop()
             # self.forward(magnitude)
 
-            self.spin( 0.1, 0.08, True) # caudal, pect, cw
+            self.spin(0.1, 0.05, True) # caudal, pect, cw
             self.depth_ctrl_psensor(250,0.1) # target depth, dorsal freq
 
         elif self.id == 1 and leds.size != 0: # follower and leader can be seen 
@@ -521,7 +521,7 @@ class Fish():
             #     # print('in zone 2: follow zone')
             #     magnitude = 0.1
 
-            #     distance = safe_distance
+            #     distance = safe_distance % 200 mm
             #     # set angle to -90 to follow on the right (outside), 90 to follow on the left (inside)
             #     new_pos = self.translate( r_move_g, heading_vector, 90, distance)  #   pos, vector, keep_angle,distance)
             #     self.home(new_pos, magnitude)
@@ -576,8 +576,8 @@ class Fish():
         else:
             ## turn clockwise if true, counter-clockwise if false?
 
-            # self.spin(0.1, 0.1, True) # caudal, pect, cw
-            self.stop() # you are dead to me
+            self.spin(0.1, 0.05, True) # caudal, pect, cw
+            # self.stop() # you are dead to me
 
 
 

@@ -22,7 +22,8 @@ import warnings
 
 U_LED_DX = 86 # [mm] leds x-distance on BlueBot
 U_LED_DZ = 86 # [mm] leds z-distance on BlueBot
-N_fish = 2  
+N_fish = 8 
+N_leader = N_fish
 EXPERIMENT_NAME = 'Decentralized inline formation'
 
 class Fish():
@@ -69,7 +70,7 @@ class Fish():
         pitch = np.arctan2(r_move_g[2], sqrt(r_move_g[0]**2 + r_move_g[1]**2)) * 180 / pi
 
         if pitch > pitch_range:
-            self.dorsal = 1
+            self.dorsal = 0.1
         elif pitch < -pitch_range:
             self.dorsal = 0
 
@@ -436,14 +437,12 @@ class Fish():
         approach_distance = self.dynamics.l_robot * 1000 * 10
 
 
-        if leds.shape == 0:
-            input()
+        # print("in move, leds\n",leds)
         # print("in move, abs_leds\n",abs_leds)
         # print("in move, rel_pos\n",rel_pos)
         # print("in move, self.id", self.id)
 
-        no_leader = 0
-        if self.id < no_leader: # leader/anchor
+        if self.id < 1: # leader
             # print("************at leader************")
             magnitude = 0.2
 
@@ -453,9 +452,9 @@ class Fish():
                 self.spin( 0.1, 0.08, True) # caudal, pect, cw
             else:
                 self.spin( 0.1, 0.08, False) # caudal, pect, cw
-            self.stop()
-            self.depth_ctrl_psensor(250,1) # target depth, dorsal freq
-        
+
+            self.depth_ctrl_psensor(250,0.1) # target depth, dorsal freq
+
         else: # follower
             # print("************at follower 1************")
             # if self.id==1:
@@ -473,10 +472,7 @@ class Fish():
                 # print(i_leader)
                 # remove refection. Input leds (relative position in global frame)
                 l_leds = leds[:3,i_leader*3:i_leader*3+3] # leader's led
-                # print('')
-                # print(i_leader)
                 # print(l_leds)
-                # print(np.any(np.isnan(l_leds)))
 
                 if np.any(np.isnan(l_leds)): # the leader is blocked
                     # calculate the relative position of the leader from its LEDs (centroid is the same location as the 1st LED)
@@ -485,7 +481,7 @@ class Fish():
                     rel_dist[:,i_leader] = 10000
 
                 else: 
-                    # print(l_leds)
+
                     # leds = self.remove_reflections(l_leds, 3) 
                     l_leds = self.parsing(l_leds)  # output l_leds in qpr in robot's frame
 
@@ -497,9 +493,9 @@ class Fish():
                     # print(triplet)
 
                     # calculate the relative position of the leader from its LEDs (centroid is the same location as the 1st LED)
-                    r_move_g[:,i_leader] = triplet[:,0]
+                    r_move_g[:,i_leader] = triplet[:,0].transpose()
                     heading_vector[:,i_leader] = triplet[:,2] - triplet[:,0]
-                    rel_dist[0,i_leader] = np.linalg.norm(r_move_g[0:2,i_leader])
+                    rel_dist[:,i_leader] = np.linalg.norm(r_move_g[0:2,i_leader])
 
             # print(leds)
 
@@ -518,22 +514,25 @@ class Fish():
             
             # if the closest leader is visible 
             if np.any(heading_vector[:,i_leader]) != 0:
+
                 # calculate target location and the behavior to go towards it 
                 # new_pos = self.translate(r_move_g[:,i_leader], heading_vector[:,i_leader],  90 , 1000)  #   pos, vector, keep_angle,distance)
-                new_pos = r_move_g[:,i_leader]/rel_dist[0,i_leader]*(rel_dist[0,i_leader]-300) # normalize first and then multiple by desired distance
+                # rel_dist = np.mean(rel_dist,axis=1)
+                # r_move_g = np.mean(r_move_g,axis=1)
+                new_pos = r_move_g/rel_dist*(rel_dist-300) # normalize first and then multiple by desired distance
+                # new_pos = r_move_g[:,i_leader]/rel_dist[0,i_leader]*(rel_dist[0,i_leader]-300) # normalize first and then multiple by desired distance
+                new_pos = np.mean(new_pos,axis=1)
                 # print(rel_dist[:,i_leader]-1000)
                 # print(new_pos)
-                magnitude = np.tanh(rel_dist[0,i_leader]/600);
-                self.home(new_pos, magnitude)
-                self.depth_ctrl_vision(r_move_g[:,i_leader]) 
+                # magnitude = np.tanh(rel_dist[0,i_leader]/600);
+                self.home(new_pos, 0.1)
+                self.depth_ctrl_vision(new_pos) 
             else:
                 # print(self.id)
                 ## turn clockwise if true, counter-clockwise if false?
 
-                self.spin(0.1, 0.1, True) # caudal, pect, cw
-                # self.stop() # you are dead to me, but don't float up
-                self.depth_ctrl_psensor(250,1) # target depth, dorsal freq
-
+                # self.spin(0.1, 0.1, True) # caudal, pect, cw
+                self.stop() # you are dead to me
 
 
 

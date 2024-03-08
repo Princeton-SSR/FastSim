@@ -35,17 +35,25 @@ ax = fig.add_axes([0, 0, 1, 1], projection='3d')
 # ax.axis('off')
 
 # Setting the axes properties
-ax.set_xlim3d([0, arena[0]])
-ax.set_xlabel('X')
-ax.set_ylim3d([0, arena[1]])
-ax.set_ylabel('Y')
+ax.set_xlim3d([-arena[0]/2, arena[0]/2])
+ax.set_ylim3d([-arena[1]/2, arena[1]/2])
 ax.set_zlim3d([0, arena[2]])
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
 ax.set_zlabel('Z')
 
 # choose a different color for each trajectory
 colors = plt.cm.turbo(np.linspace(0, 1, no_fish))
 colors[:no_leader,:] = colors[0,:] # make all the follower the same color (red)
 colors[no_leader:,:] = colors[-1,:] # make all the follower the same color (red)
+
+# plot cylinder
+z = np.linspace(0, arena[2], 50)
+theta = np.linspace(0, 2*np.pi, 50)
+theta_grid, z_grid=np.meshgrid(theta, z)
+x_grid = arena[0]/2*np.cos(theta_grid)
+y_grid = arena[0]/2*np.sin(theta_grid)
+ax.plot_surface(x_grid,y_grid ,z_grid, alpha=0.2, color='gray', edgecolor ='none')
 
 # set up lines and points
 lines = sum([ax.plot([], [], [], '-', c=c)

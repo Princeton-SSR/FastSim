@@ -74,6 +74,7 @@ for i_trial in range(0,no_trial):
     axs[0,0].set_aspect('equal')
     axs[0,0].set_title('trajectory')
     axs[0,0].set(xlabel='$x_{global}$',ylabel='$y_{global}}$')
+    axs[0,0].plot(arena[0]/2*np.cos(np.linspace(0, 2*np.pi, 500)),arena[0]/2*np.sin(np.linspace(0, 2*np.pi, 500)),color='gray')
 
 
     ############################################
