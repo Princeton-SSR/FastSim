@@ -22,6 +22,7 @@ import sys
 
 # filename = '240219_213513'
 # Read meta file
+
 try:
     filename = sys.argv[1]
 except:
@@ -51,6 +52,9 @@ t = np.arange(0, timesteps,1) /clock_freq
 y_offset = 400 # to offset ax2
 
 # figure setup
+# Set the font to be recognizable
+plt.rcParams['svg.fonttype'] = 'none'
+
 fig1, ax1s = plt.subplots(1, 4,constrained_layout = True,figsize=(10,3))
 # plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.2, hspace=0.2)
 gs = ax1s[2].get_gridspec()
@@ -137,6 +141,7 @@ for i_trial in range(0,no_trial):
 
         # plot distance, don't plot more than 10 
         if i_trial < 10:
+        # if i_trial > 10 and i_trial < 20:
             ax3.plot(t,np.linalg.norm((x_rel,y_rel,z_rel),axis=0))
 
 
@@ -163,8 +168,9 @@ ax2.set_ylim([-1500, 1500])
 ax2.set_yticks([-1000, 0, 1000])
 ax2.axis('off')
 
+ax3.set_xlim([0, 500])
 ax3.set_ylim([0, 2500])
-ax3.set_yticks([0, 1000, 2000])
+# ax3.set_yticks([0, 1000, 2000])
 
 
 ax4.legend(('x','y','z','$\phi$'),loc='upper right')
@@ -174,10 +180,24 @@ ax4.set_title('relative states')
 # ax3.legend(('x','y','z'))
 ax3.set(xlabel='t (s)')
 ax3.set(ylabel='distance (mm)')
-
+# ax3.grid('on')
 # Save image
-fig1.savefig('animations/{}_trajectory.png'.format(filename),facecolor='white',transparent=False,dpi=500)  # Replace with desired filename
-fig1.savefig('animations/{}_trajectory.pdf'.format(filename),facecolor='white',transparent=False,dpi=500)  # vector file but it's huge
+# fig1.savefig('animations/{}_trajectory.png'.format(filename),facecolor='white',transparent=False,dpi=500)  # Replace with desired filename
+
+
+# remove axis to save vector file size
+ax1.remove()
+ax2.remove()
+fig1.savefig('animations/{}_trajectory.svg'.format(filename),facecolor='white',transparent=False,dpi=500)  # vector file but it's huge
+
+# ax3.set_xlim([150, 250])
+# ax3.set_xticks([150, 250])
+
+# ax3.set_ylim([50, 450])
+# ax3.set_yticks([50, 450])
+
+# fig1.savefig('animations/{}_trajectory_zoomed.svg'.format(filename),facecolor='white',transparent=False,dpi=500)  # vector file but it's huge
+
 
 # Display plot (optional)
 plt.show()
