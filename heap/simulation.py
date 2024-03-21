@@ -66,7 +66,7 @@ no_leader = getattr(importlib.import_module('fishfood.' + experiment_file), 'N_l
 simulation_time = 500 # [s]
 clock_freq = 2 # [Hz]
 clock_rate = 1/clock_freq # [s]
-no_trial = 10 # number of simulations performed 
+no_trial = 1 # number of simulations performed 
 filename = time.strftime("%y%m%d_%H%M%S") # date_time
 
 # Fish Specifications
@@ -102,7 +102,7 @@ for i_trial in range(no_trial):
     pos[:,2] = 10 * np.random.rand(1, no_fish) # z, all fish at same noise-free depth results in LJ lock
     pos[:,3] = 2*math.pi * (np.random.rand(1, no_fish) - 0.5) # phi
 
-    # fix leader pos sort of center at the middle
+    # fix leader pos sort of center at the middle, this can be further overwritten in the experiment file
     pos[0,0] = 600 #arena_center[:2] 
     pos[0,1] = -1300
     pos[0,2] = 0
@@ -163,14 +163,14 @@ for i_trial in range(no_trial):
 
     # Run animation right after the code
     t_start = time.time()
-    # os.system(f'python animation.py '+filename+"_"+str(i_trial))
+    os.system(f'python animation.py '+filename+"_"+str(i_trial))
     print('| Duration: {} sec\n -'.format(round(time.time()-t_start)))
 
 
     # Run animation saving right after the code
-    # t_start = time.time()
-    # os.system(f'python recording.py '+filename+"_"+str(i_trial))
-    # print('| Duration: {} sec\n -'.format(round(time.time()-t_start)))
+    t_start = time.time()
+    os.system(f'python recording.py '+filename+"_"+str(i_trial))
+    print('| Duration: {} sec\n -'.format(round(time.time()-t_start)))
 
 # Run agent plots right after the code
 os.system(f'python plot_agents.py '+filename)

@@ -425,22 +425,10 @@ class Fish():
     def move(self, robots, rel_pos, dist, leds, abs_leds, duration):
         """Decision-making based on neighboring robots and corresponding move
         """
-        # if not robots: # no other robots, continue with ctrl from last step
-        #     target_pos, self_vel = self.dynamics.simulate_move(self.id, duration)
-        #     return (target_pos, self_vel)
-
-        # Define your move here
-        
-
-        # Specify a distance range within which followers cease their actuation.
-        safe_distance = self.dynamics.l_robot * 1000 * 3 # mm
-        approach_distance = self.dynamics.l_robot * 1000 * 10
-
-
-        # print("in move, leds\n",leds)
-        # print("in move, abs_leds\n",abs_leds)
-        # print("in move, rel_pos\n",rel_pos)
-        # print("in move, self.id", self.id)
+                # Specify a distance range within which followers cease their actuation.
+        safe_distance = 100 # mm. compared to body length 150 mm
+        approach_distance = 1000 # mm 1000 mm
+        distance = 500 # 200 mm distance to maintain
 
         if self.id == 0: # leader
             # print("************at leader************")
@@ -449,25 +437,19 @@ class Fish():
             # self.stop()
             # self.forward(magnitude)
 
-            self.spin( 0.1, 0.08, True) # caudal, pect, cw
-            self.depth_ctrl_psensor(250,0.1) # target depth, dorsal freq
+            self.spin( 0.1, 0.1, True) # caudal, pect, cw
+            self.depth_ctrl_psensor(1000,0.1) # target depth, dorsal freq
 
         elif leds.size != 0: # follower
             # print("************at follower 1************")
 
-            # remove refection. Input leds (relative position in global frame)
             leds = leds[:3,:3] # leader's led
-            # leds = self.remove_reflections(l_leds, 3) 
             leds = self.parsing(leds)  # output leds in qpr in robot's frame
-            # leds = self.remove_reflections(leds, 3)
             duplet = self._pqr_to_xyz(leds)  # xyz of led_1 and led_2
             b3_pqr = leds[:,-1]
             triplet = self._pqr_3_to_xyz(duplet, b3_pqr)     
             orientation = self._orientation(triplet)    
             heading_vector = triplet[:,2] - triplet[:,0]
-            # print(" heading_vector from triplet,", heading_vector)
-            # print(np.linalg.norm(heading_vector))
-            # input()
             
             # calculate the relative position of the leader from its LEDs (centroid is the same location as the 1st LED)
             r_move_g = triplet[:,0].transpose()
@@ -475,17 +457,18 @@ class Fish():
             # calculate the distance with respect to the leader
             rel_dist = np.linalg.norm(r_move_g[0:2])
 
-            new_pos = self.translate( r_move_g, heading_vector,  self.id*60 , safe_distance)  #   pos, vector, keep_angle,distance)
+            # new_pos = self.translate( r_move_g, heading_vector,  self.id*60 , distance)  #   pos, vector, keep_angle,distance)
+            new_pos = self.translate( r_move_g, heading_vector,  180 + atan2(cos(self.id*2*pi/6),1)* 180 / pi , distance*sqrt(2))  #   pos, vector, keep_angle,distance)
             magnitude = np.tanh(np.linalg.norm(new_pos)/600);
             self.home(new_pos, magnitude)
-            self.depth_ctrl_vision(r_move_g) 
+            self.depth_ctrl_vision(r_move_g+sin(self.id*2*pi/6)*distance) 
+            # print(sin(self.id*2*pi/6)*distance)
+            # input()
         else:
-            # print(self.id)
             ## turn clockwise if true, counter-clockwise if false?
 
-            # self.spin(0.1, 0.1, True) # caudal, pect, cw
-            self.stop() # you are dead to me
-
+            self.spin(0.1, 0.1, True) # caudal, pect, cw
+            # self.stop() # you are dead to me
 
 
         self.dynamics.update_ctrl(self.dorsal, self.caudal, self.pect_r, self.pect_l)

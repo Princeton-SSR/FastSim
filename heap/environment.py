@@ -423,12 +423,11 @@ class Environment():
 
 
             # tmp = np.append(tmp, relative_coordinates, axis=1)
-
             relative_coordinates /= np.linalg.norm(relative_coordinates) # normalize from xyz to pqr
             
             all_blobs = np.append(all_blobs, relative_coordinates, axis=1)
 
-        p = np.random.permutation(np.shape(all_blobs)[1]) # mix up into random order
+        # p = np.random.permutation(np.shape(all_blobs)[1]) # mix up into random order
 
         # print(" in enviornment/calc_relative_leds")
         # print("leds xyz in abs frame (with reflection)")

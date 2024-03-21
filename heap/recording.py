@@ -28,6 +28,7 @@ arena = meta['Arena [mm]']
 timesteps = data.shape[0]
 no_fish = int(data.shape[1]/8)
 no_leader = meta['Number of leaders']
+t = np.arange(0, timesteps,1) /clock_freq
 
 # Set up figure & 3D axis for animation
 fig = plt.figure()
@@ -53,18 +54,19 @@ theta = np.linspace(0, 2*np.pi, 50)
 theta_grid, z_grid=np.meshgrid(theta, z)
 x_grid = arena[0]/2*np.cos(theta_grid)
 y_grid = arena[0]/2*np.sin(theta_grid)
-ax.plot_surface(x_grid,y_grid ,z_grid, alpha=0.2, color='gray', edgecolor ='none')
 
 # set up lines and points
+line_shadows = sum([ax.plot([], [], [], '-', c=1-0.5*(1-c))
+           for c in colors], [])
+pt_shadows   = sum([ax.plot([], [], [], 'o', c=1-0.5*(1-c))
+           for c in colors], [])
+
 lines = sum([ax.plot([], [], [], '-', c=c)
              for c in colors], [])
 pts = sum([ax.plot([], [], [], 'o', c=c)
            for c in colors], [])
 
-line_shadows = sum([ax.plot([], [], [], '-', c=1-0.5*(1-c))
-           for c in colors], [])
-pt_shadows   = sum([ax.plot([], [], [], 'o', c=1-0.5*(1-c))
-           for c in colors], [])
+ax.plot_surface(x_grid,y_grid ,z_grid, alpha=0.2, color='gray', edgecolor ='none')
 
 # title = ax.title('')
 # line_shadows = sum([ax.plot([], [], [], '-', c=c, alpha=0.8)
@@ -74,7 +76,7 @@ pt_shadows   = sum([ax.plot([], [], [], 'o', c=1-0.5*(1-c))
 
 # set point-of-view: specified by (altitude degrees, azimuth degrees)
 ax.invert_zaxis()
-ax.view_init(45, 15)
+ax.view_init(20, 20)
 
 # animation function.  This will be called sequentially with the frame number
 def animate(i):
@@ -85,9 +87,9 @@ def animate(i):
     # plot shadows first
     for line, pt, ls, ps,  i_fish in zip(lines, pts, line_shadows, pt_shadows, range(no_fish)):
         # x, y, z = data[:i].T
-        x = data[:i, 4*i_fish]
-        y = data[:i, 4*i_fish+1]
-        z = data[:i, 4*i_fish+2]
+        x = data[max(0,i-50):i, 4*i_fish]
+        y = data[max(0,i-50):i, 4*i_fish+1]
+        z = data[max(0,i-50):i, 4*i_fish+2]
 
         ls.set_data(x, y)
         ls.set_3d_properties(arena[2])
@@ -97,9 +99,9 @@ def animate(i):
 
     for line, pt, ls, ps,  i_fish in zip(lines, pts, line_shadows, pt_shadows, range(no_fish)):
         # x, y, z = data[:i].T
-        x = data[:i, 4*i_fish]
-        y = data[:i, 4*i_fish+1]
-        z = data[:i, 4*i_fish+2]
+        x = data[max(0,i-50):i, 4*i_fish]
+        y = data[max(0,i-50):i, 4*i_fish+1]
+        z = data[max(0,i-50):i, 4*i_fish+2]
 
 
         line.set_data(x, y)
@@ -108,8 +110,16 @@ def animate(i):
         pt.set_data(x[-1:], y[-1:])
         pt.set_3d_properties(z[-1:])
 
-    ax.view_init(45, 15+0.1 * i)
+    # ax.view_init(20, 20+0.1 * i)
+    ax.set_aspect('equal', adjustable='box') # for python >3.7
     fig.canvas.draw()
+
+    # print()
+    # input()
+    if t[i]%25==0 and t[i]<350:
+        fig.savefig('animations/{}_t={}.png'.format(filename,t[i]),facecolor='white',transparent=False,dpi=500)  # Replace with desired filename
+    
+    
     return lines + pts + line_shadows + pt_shadows
 
 # ax.title("t = {}".format(1))
@@ -119,10 +129,10 @@ def animate(i):
 # Parameters for video
 N_skip = 5 # only plotting every N_skip frames
 N = np.int32(data.shape[0]/N_skip)
-N = 100
+# N = 100
 print("Number of frames to be plotted = ",N)
 fps = 10
 
 ani = animation.FuncAnimation(fig, animate, N, interval=10, blit=True)
 ani.save('./animations/{}_animation.mp4'.format(filename), fps=fps, extra_args=['-vcodec', 'libx264'])
-# plt.show()
+plt.show()

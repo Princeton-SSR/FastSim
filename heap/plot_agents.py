@@ -5,7 +5,7 @@ Attributes:
     clock_freq (float): Clock frequency
     clock_rate (float): Clock rate
     colors (np-array of floats): Colors fish depending on their location
-    fig (figure object): ipv figure
+    fig1 (fig1ure object): ipv fig1ure
     fishes (int): Number of simulated fishes
     phi (float): Orientation angles
     quiver (plot object): ipv quiver plot
@@ -46,11 +46,34 @@ clock_rate = 1000/clock_freq # [ms]
 arena = meta['Arena [mm]']
 timesteps = data.shape[0]
 fishes = int(data.shape[1]/8)
+no_leader = meta['Number of leaders']
 t = np.arange(0, timesteps,1) /clock_freq
+y_offset = 400 # to offset ax2
 
 # figure setup
-fig, axs = plt.subplots(2, 2,constrained_layout = True)
-fig.figsize=(10, 6)
+fig1, ax1s = plt.subplots(1, 4,constrained_layout = True,figsize=(10,3))
+# plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.2, hspace=0.2)
+gs = ax1s[2].get_gridspec()
+ax1s[2].remove()
+ax1s[3].remove()
+ax1s[2] = fig1.add_subplot(gs[-2:])
+# fig1.figsize=(10, 3)
+fig2, ax2s = plt.subplots(1, 1)
+
+# assign axis
+ax1 = ax1s[0]
+ax2 = ax1s[1]
+ax3 = ax1s[2]
+ax4 = ax2s
+
+# Build your secondary mirror axes:
+# fig2, (ax3, ax4) = plt.subplots(1, 2)
+# map1 = ax3.imshow(np.stack([t, t]),cmap='Oranges')
+# map2 = ax4.imshow(np.stack([t, t]),cmap='Blues')
+# ax3.axis('off')
+# ax4.axis('off')
+# fig1.colorbar(map1,values=t,ax=ax1)
+# fig1.colorbar(map2,values=t,ax=ax1)
 
 for i_trial in range(0,no_trial):
 
@@ -61,20 +84,20 @@ for i_trial in range(0,no_trial):
     data = np.loadtxt('./logfiles/{}_{}_data.txt'.format(filename,i_trial), delimiter=',')
 
     ################################################
-    # plot trajectories
-    for ii in range(0,fishes):
+
+    
+    # followers
+    for ii in range(no_leader,fishes):
         x = data[:, 4*ii]
         y = data[:, 4*ii+1]
         z = data[:, 4*ii+2]
-        axs[0,0].scatter(x, y, c=t, s=5)  # Use color based on time
+        ax1.scatter(x, y, c=t, s=5, cmap='Oranges', alpha=0.8)  # Use color based on time
 
-    # Customize grid, legend, etc. (optional)
-    # axs[0,0].grid(True)
-    # Set aspect ratio to be equal
-    axs[0,0].set_aspect('equal')
-    axs[0,0].set_title('trajectory')
-    axs[0,0].set(xlabel='$x_{global}$',ylabel='$y_{global}}$')
-    axs[0,0].plot(arena[0]/2*np.cos(np.linspace(0, 2*np.pi, 500)),arena[0]/2*np.sin(np.linspace(0, 2*np.pi, 500)),color='gray')
+    for ii in range(0,no_leader):
+        x = data[:, 4*ii]
+        y = data[:, 4*ii+1]
+        z = data[:, 4*ii+2]
+        ax1.scatter(x, y, c=t, s=5, cmap='Blues', alpha=1)  # Use color based on time
 
 
     ############################################
@@ -85,10 +108,10 @@ for i_trial in range(0,no_trial):
     phi0 = data[:, 3]
 
     # plot leader
-    axs[1,0].arrow(-150,0,300,0,linewidth = 3,head_width=100, fc='b',ec='b')
+    ax2.arrow(-75,0-y_offset,150,0,linewidth = 1,head_width=80, fc='b',ec='b')
 
     # plot trajectories
-    for ii in range(1,fishes):
+    for ii in range(no_leader,fishes):
         x = data[:, 4*ii]-x0
         y = data[:, 4*ii+1]-y0   
         z_rel = data[:, 4*ii+2] - z0    
@@ -104,36 +127,57 @@ for i_trial in range(0,no_trial):
         y_rel = -x*np.sin(phi0)+y*np.cos(phi0)
 
         # plot relative position
-        axs[1,0].scatter(x_rel, y_rel, c=t, s=5)  # Use color based on time
+        ax2.scatter(x_rel, y_rel-y_offset, c=t, s=5, cmap='Oranges', alpha=0.8)  # Use color based on time
 
         # plot time series
-        axs[0,1].plot(t,x_rel,c='red')
-        axs[0,1].plot(t,y_rel,c='g')
-        axs[0,1].plot(t,z_rel,c='b')
-        axs[0,1].plot(t,phi_rel,c='black')
+        ax4.plot(t,x_rel,c='red')
+        ax4.plot(t,y_rel,c='g')
+        ax4.plot(t,z_rel,c='b')
+        ax4.plot(t,phi_rel,c='black')
 
-        # plot distance
-        axs[1,1].plot(t,np.linalg.norm((x_rel,y_rel,z_rel),axis=0))
+        # plot distance, don't plot more than 10 
+        if i_trial < 10:
+            ax3.plot(t,np.linalg.norm((x_rel,y_rel,z_rel),axis=0))
 
 
 # Customize grid, legend, etc. (optional)
-# axs[1,0].grid(True)
-axs[1,0].set_aspect('equal')
-axs[1,0].set_title('relative trajectory')
-axs[1,0].set(xlabel='$x_{leader}$',ylabel='$y_{leader}$')
+
+# Customize grid, legend, etc. (optional)
+# ax1.grid(True)
+# Set aspect ratio to be equal
+ax1.set_aspect('equal')
+# ax1.set_title('trajectory')
+ax1.set(xlabel='$x_{global}$',ylabel='$y_{global}}$')
+ax1.plot(arena[0]/2*np.cos(np.linspace(0, 2*np.pi, 500)),arena[0]/2*np.sin(np.linspace(0, 2*np.pi, 500)),color='gray')
+ax1.set_xlim([-arena[0]/2-100, arena[0]/2+100])
+ax1.set_ylim([-arena[0]/2-100, arena[0]/2+100])
+ax1.axis('off')
 
 
-axs[0,1].legend(('x','y','z','$\phi$'),loc='upper right')
-axs[0,1].set(xlabel='t')
-axs[0,1].set_title('relative states')
+# ax2.grid(True)
+ax2.set_aspect('equal')
+# ax2.set_title('relative trajectory')
+ax2.set(xlabel='$x_{leader}  (mm)$',ylabel='$y_{leader}  (mm)$')
+ax2.set_xlim([-1500, 1500])
+ax2.set_ylim([-1500, 1500])
+ax2.set_yticks([-1000, 0, 1000])
+ax2.axis('off')
 
-# axs[1,1].legend(('x','y','z'))
-axs[1,1].set(xlabel='t')
-axs[1,1].set_title('distance')
+ax3.set_ylim([0, 2500])
+ax3.set_yticks([0, 1000, 2000])
+
+
+ax4.legend(('x','y','z','$\phi$'),loc='upper right')
+ax4.set(xlabel='t')
+ax4.set_title('relative states')
+
+# ax3.legend(('x','y','z'))
+ax3.set(xlabel='t (s)')
+ax3.set(ylabel='distance (mm)')
 
 # Save image
-fig.savefig('animations/{}_trajectory.png'.format(filename),facecolor='white',transparent=False,dpi=500)  # Replace with desired filename
-# fig.savefig('animations/{}_trajectory.svg'.format(filename),facecolor='white',transparent=False,dpi=500)  # vector file but it's huge
+fig1.savefig('animations/{}_trajectory.png'.format(filename),facecolor='white',transparent=False,dpi=500)  # Replace with desired filename
+fig1.savefig('animations/{}_trajectory.pdf'.format(filename),facecolor='white',transparent=False,dpi=500)  # vector file but it's huge
 
 # Display plot (optional)
 plt.show()

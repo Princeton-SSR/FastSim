@@ -46,6 +46,9 @@ class Fish():
         self.pect_r = 0
         self.pect_l = 0
 
+        self.environment.pos[0:N_leader,0] = 200 #arena_center[:2] 
+        self.environment.pos[0:N_leader,1] = -700
+
 
     def run(self, duration):
         """(1) Get neighbors from environment, (2) move accordingly, (3) update your state in environment
@@ -427,22 +430,10 @@ class Fish():
     def move(self, robots, rel_pos, dist, leds, abs_leds, duration):
         """Decision-making based on neighboring robots and corresponding move
         """
-        # if not robots: # no other robots, continue with ctrl from last step
-        #     target_pos, self_vel = self.dynamics.simulate_move(self.id, duration)
-        #     return (target_pos, self_vel)
-
-        # Define your move here
-        
-
         # Specify a distance range within which followers cease their actuation.
-        safe_distance = self.dynamics.l_robot * 1000 * 3 # mm
-        approach_distance = self.dynamics.l_robot * 1000 * 10
-
-
-        # print("in move, leds\n",leds)
-        # print("in move, abs_leds\n",abs_leds)
-        # print("in move, rel_pos\n",rel_pos)
-        # print("in move, self.id", self.id)
+        safe_distance = 100 # mm. compared to body length 150 mm
+        approach_distance = 1000 # mm 1000 mm
+        distance = 500 # 200 mm distance to maintain
 
         if self.id < N_leader: # leader
             # print("************at leader************")
@@ -451,11 +442,11 @@ class Fish():
             # self.stop()
             # self.forward(magnitude)
             if self.id == 0:
-                self.spin( 0.1, 0.08, True) # caudal, pect, cw
+                self.spin( 0.1, 0.05, True) # caudal, pect, cw
             else:
-                self.spin( 0.1, 0.08, False) # caudal, pect, cw
+                self.spin( 0.1, 0.1, False) # caudal, pect, cw
 
-            self.depth_ctrl_psensor(250,0.1) # target depth, dorsal freq
+            self.depth_ctrl_psensor(1000,0.1) # target depth, dorsal freq
 
         else: # follower
             # print("************at follower 1************")
@@ -503,7 +494,7 @@ class Fish():
 
             # choose the leader that is the closest
             i_leader = np.argmin(rel_dist)
-
+            # i_leader = 0
             # print(r_move_g)
             # print(heading_vector)
             # print(rel_dist)
@@ -516,7 +507,7 @@ class Fish():
             if np.any(heading_vector[:,i_leader]) != 0:
 
                 # calculate target location and the behavior to go towards it 
-                new_pos = self.translate( r_move_g[:,i_leader], heading_vector[:,i_leader],  self.id*60 , safe_distance)  #   pos, vector, keep_angle,distance)
+                new_pos = self.translate( r_move_g[:,i_leader], heading_vector[:,i_leader],  90+180*(self.id-2)/5, distance)  #   pos, vector, keep_angle,distance)
                 magnitude = np.tanh(rel_dist[0,i_leader]/600);
                 self.home(new_pos, magnitude)
                 self.depth_ctrl_vision(r_move_g[:,i_leader]) 
@@ -525,8 +516,8 @@ class Fish():
                 # print(self.id)
                 ## turn clockwise if true, counter-clockwise if false?
 
-                # self.spin(0.1, 0.1, True) # caudal, pect, cw
-                self.stop() # you are dead to me
+                self.spin(0.1, 0.1, True) # caudal, pect, cw
+                # self.stop() # you are dead to me
 
 
 
