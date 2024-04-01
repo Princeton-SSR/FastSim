@@ -177,12 +177,12 @@ ax4.legend(('x','y','z','$\phi$'),loc='upper right')
 ax4.set(xlabel='t')
 ax4.set_title('relative states')
 
-# ax3.legend(('x','y','z'))
+# ax3.legend(('1','2','3','4','5','6'))
 ax3.set(xlabel='t (s)')
 ax3.set(ylabel='distance (mm)')
 # ax3.grid('on')
 # Save image
-# fig1.savefig('animations/{}_trajectory.png'.format(filename),facecolor='white',transparent=False,dpi=500)  # Replace with desired filename
+fig1.savefig('animations/{}_trajectory.png'.format(filename),facecolor='white',transparent=False,dpi=500)  # Replace with desired filename
 
 
 # remove axis to save vector file size

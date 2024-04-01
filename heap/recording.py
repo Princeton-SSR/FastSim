@@ -116,8 +116,8 @@ def animate(i):
 
     # print()
     # input()
-    if t[i]%25==0 and t[i]<350:
-        fig.savefig('animations/{}_t={}.png'.format(filename,t[i]),facecolor='white',transparent=False,dpi=500)  # Replace with desired filename
+    # if t[i]%25==0 and t[i]<350:
+    #     fig.savefig('animations/{}_t={}.png'.format(filename,t[i]),facecolor='white',transparent=False,dpi=500)  # Replace with desired filename
     
     
     return lines + pts + line_shadows + pt_shadows

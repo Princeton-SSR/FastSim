@@ -466,7 +466,7 @@ class Fish():
             ########################################################################
             # zonal approach block 
 
-            rel_dist = np.linalg.norm(new_pos)
+            # rel_dist = np.linalg.norm(new_pos)
 
             if rel_dist <= safe_distance:
                 # print('in zone 3: dead zone')
@@ -481,7 +481,8 @@ class Fish():
 
             else: 
                 # print('in zone 2: follow zone')
-                magnitude = 0.4
+                # magnitude = 0.4
+                magnitude = 0.3 + 0.4*rel_dist/approach_distance
                 self.home(new_pos, magnitude)
             
             ########################################################################

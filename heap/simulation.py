@@ -66,7 +66,7 @@ no_leader = getattr(importlib.import_module('fishfood.' + experiment_file), 'N_l
 simulation_time = 500 # [s]
 clock_freq = 2 # [Hz]
 clock_rate = 1/clock_freq # [s]
-no_trial = 1 # number of simulations performed 
+no_trial = 30 # number of simulations performed 
 filename = time.strftime("%y%m%d_%H%M%S") # date_time
 
 # Fish Specifications
@@ -167,10 +167,10 @@ for i_trial in range(no_trial):
     print('| Duration: {} sec\n -'.format(round(time.time()-t_start)))
 
 
-    # Run animation saving right after the code
-    t_start = time.time()
-    os.system(f'python recording.py '+filename+"_"+str(i_trial))
-    print('| Duration: {} sec\n -'.format(round(time.time()-t_start)))
+    # # Run animation saving right after the code
+    # t_start = time.time()
+    # os.system(f'python recording.py '+filename+"_"+str(i_trial))
+    # print('| Duration: {} sec\n -'.format(round(time.time()-t_start)))
 
 # Run agent plots right after the code
 os.system(f'python plot_agents.py '+filename)
