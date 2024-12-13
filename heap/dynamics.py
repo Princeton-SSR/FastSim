@@ -25,11 +25,11 @@ class Dynamics():
         self.C_dx_fwd = 0.5 # c.f. cone
         self.C_dx_bwd = 1.0 # c.f. cone
         self.C_dy_static = 2.1 # c.f. flat plate
-        self.C_dz = 0.7
+        self.C_dz = 10 # increased from 0.7 by Hungtang
         self.C_dphi_static = 1.0
         self.pect_dist = 0.055 # [m]
         self.pect_angle = pi / 6 # [rad]
-        self.F_buoy = 0.010 # [N]
+        self.F_buoy = 0.010/10 # [N]
         self.vx_max = 0.160 # [m/s]
 
         # Initialize Control
@@ -78,6 +78,7 @@ class Dynamics():
         vy = r_Pdot_r[1]
         vz = r_Pdot_r[2]
 
+        # integrate multiple times within each position update
         for step in range(self.steps):
             # Equations of Motion
             x_dot = vx
@@ -85,22 +86,33 @@ class Dynamics():
             z_dot = vz
             phi_dot = vphi
 
+            # fluid coefficients for lateral and rotational direction, assume the faster the robot is moving, the larger the drag coeff
             self.C_dphi = self.C_dphi_static + self.C_dphi_static * 9 * abs(x_dot) / self.vx_max
             self.C_dy = self.C_dy_static + self.C_dy_static * 4 * abs(x_dot) / self.vx_max
+            
+            # drag coefficient for moving along x
             if x_dot > 0:
                 self.C_dx = self.C_dx_fwd
             else:
                 self.C_dx = self.C_dx_bwd
 
-            #TODO: Double check all these, but basically vy moves you laterally and vx forward 
-            #TODO: verify in a test case that positive vy_dot moves you left and negative vy_dot moves you right 
-            vx_dot = 1/self.m_robot * (self.F_caud - sin(self.pect_angle)*self.F_PL - sin(self.pect_angle)*self.F_PR - 1/2*self.rho*self.C_dx*self.A_x*np.sign(x_dot)*x_dot**2)
+            # calculate the acceleration in the x direction
+            vx_dot = 1/self.m_robot * (self.F_caud                              # propulsion from caudal fin
+                                       - sin(self.pect_angle)*self.F_PL         # push-back from left pectoral fin 
+                                       - sin(self.pect_angle)*self.F_PR         # push-back from right pectoral fin 
+                                       - 1/2*self.rho*self.C_dx*self.A_x*np.sign(x_dot)*x_dot**2) # fluid drag 
 
-            # This is going forward      
-            vy_dot = 1/self.m_robot * (cos(self.pect_angle)*self.F_PL - cos(self.pect_angle)*self.F_PR - 1/2*self.rho*self.C_dy*self.A_y*np.sign(y_dot)*y_dot**2)
+            # calculate the acceleration in the y direction      
+            vy_dot = 1/self.m_robot * (cos(self.pect_angle)*self.F_PL           # push sideway from left pectoral fin
+                                       - cos(self.pect_angle)*self.F_PR         # push sideway from right pectoral fin
+                                       - 1/2*self.rho*self.C_dy*self.A_y*np.sign(y_dot)*y_dot**2) # fluid drag
 
-            # This is going up 
-            vz_dot = 1/self.m_robot * (self.F_dors - self.F_buoy - 1/2*self.rho*self.C_dz*self.A_z*np.sign(z_dot)*z_dot**2)
+            # calculate the acceleration in the z direction
+            vz_dot = 1/self.m_robot * (self.F_dors                              # push down by the dorsal fin
+                                       - self.F_buoy                            # buoyancy 
+                                       - 1/2*self.rho*self.C_dz*self.A_z*np.sign(z_dot)*z_dot**2) # fluid drag
+            
+            # calculate the acceleration in the phi direction
             vphi_dot = 1/self.I_robot * (self.pect_dist*cos(self.pect_angle)*self.F_PL - self.pect_dist*cos(self.pect_angle)*self.F_PR - 1/2*self.rho*self.C_dphi*self.A_phi*np.sign(phi_dot)*(self.l_robot/6*phi_dot)**2)
 
             # Euler Integration
@@ -117,6 +129,8 @@ class Dynamics():
             g_P_r = g_P_r + deltat*np.transpose(g_Pdot_r)
 
         # Conversion to millimeter and appendage of phi and vphi
+        # print(m_to_mm * g_P_r)
+        # print(np.array([phi]))
         pos = np.concatenate((m_to_mm * g_P_r, np.array([phi])), axis=0)
         vel = np.concatenate((m_to_mm * g_Pdot_r, np.array([vphi])), axis=0)
 

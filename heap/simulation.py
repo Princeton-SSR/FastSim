@@ -31,13 +31,13 @@ import importlib
 from environment import Environment
 from dynamics import Dynamics
 from lib_heap import Heap
+import os
 
-
-def log_meta():
+def log_meta(fn):
     """Logs the meta data of the experiment
     """
-    meta = {'Experiment': experiment_file, 'Number of fishes': no_fish, 'Simulation time [s]': simulation_time, 'Clock frequency [Hz]': clock_freq, 'Arena [mm]': arena_list, 'Visual range [mm]': v_range, 'Width of blindspot [mm]': w_blindspot, 'Radius of blocking sphere [mm]': r_sphere, 'Visual noise magnitude [% of distance]': n_magnitude}
-    with open('./logfiles/{}_meta.txt'.format(filename), 'w') as f:
+    meta = {'Experiment': experiment_file, 'Number of fishes': no_fish, 'Number of leaders': no_leader, 'Number of trials': no_trial, 'Simulation time [s]': simulation_time, 'Clock frequency [Hz]': clock_freq, 'Arena [mm]': arena_list, 'Visual range [mm]': v_range, 'Width of blindspot [mm]': w_blindspot, 'Radius of blocking sphere [mm]': r_sphere, 'Visual noise magnitude [% of distance]': n_magnitude}
+    with open('./logfiles/{}_meta.txt'.format(fn), 'w') as f:
         json.dump(meta, f, indent=2)
 
 # Read Experiment Description
@@ -50,17 +50,27 @@ except:
 #import Fish class directly from module specified by experiment type
 Fish = getattr(importlib.import_module('fishfood.' + experiment_file), 'Fish') 
 
-## Feel free to loop over multiple simulations with different parameters! ##
+# print experiment name
+print(' ')
+print('########### WELCOME TO BLUESIM ###########')
+print('Experiment: '+getattr(importlib.import_module('fishfood.' + experiment_file), 'EXPERIMENT_NAME', 'unnamed'))
+print('##########################################')
+print(' ')
 
+## Feel free to loop over multiple simulations with different parameters! ##
 # Experimental Parameters
-#TODO: change this back to 20 
-no_fish = 20
-simulation_time = 100 # [s]
+no_fish = 5 # default 
+no_fish = getattr(importlib.import_module('fishfood.' + experiment_file), 'N_fish', no_fish)  # overwrite if the experiment file specify
+no_leader = 1 # default 
+no_leader = getattr(importlib.import_module('fishfood.' + experiment_file), 'N_leader', no_leader)  # overwrite if the experiment file specify
+simulation_time = 500 # [s]
 clock_freq = 2 # [Hz]
-clock_rate = 1/clock_freq
+clock_rate = 1/clock_freq # [s]
+no_trial = 1 # number of simulations performed 
+filename = time.strftime("%y%m%d_%H%M%S") # date_time
 
 # Fish Specifications
-v_range=5000 # visual range, [mm]
+v_range=2000 # visual range, [mm] # 1 to 2 m
 w_blindspot=50 # width of blindspot, [mm]
 # w_blindspot=3141 # TODO: figure out mapping mm to degrees
 r_sphere=50 # radius of blocking sphere for occlusion, [mm]
@@ -69,64 +79,98 @@ fish_specs = (v_range, w_blindspot, r_sphere, n_magnitude)
 
 # Standard Tank
 # arena_list = [1780, 1780, 1170]
-#TODO: Add circle as arena shape (cylinder)
-arena_list = [10000,10000,500]
+arena_list = [6000,6000,2000] # 6x6x2 m cylindrical arena
 arena = np.array(arena_list)
-arena_center = arena / 2.0
+# arena_center = arena / 2.0
 
-# Standard Surface Initialization
-initial_spread = 2000
-pos = np.zeros((no_fish, 4))
-vel = np.zeros((no_fish, 4))
-pos[:,:2] = initial_spread * (np.random.rand(no_fish, 2) - 0.5) + arena_center[:2] # x,y
-pos[:,2] = 10 * np.random.rand(1, no_fish) # z, all fish at same noise-free depth results in LJ lock
-pos[:,3] = 2*math.pi * (np.random.rand(1, no_fish) - 0.5) # phi
+# repeating trials
+for i_trial in range(no_trial):
 
-# Create Environment, Dynamics, And Heap
-environment = Environment(pos, vel, fish_specs, arena)
-dynamics = Dynamics(environment)
-H = Heap(no_fish)
+    # seed random generator
+    random.seed(i_trial) # for heap
+    np.random.seed(i_trial) # for initial condition
 
-# Create Fish Instances And Insert Into Heap
-fishes = []
-for fish_id in range(no_fish):
-    clock = random.gauss(clock_rate, 0.1*clock_rate)
-    fishes.append(Fish(fish_id, dynamics, environment))
-    H.insert(fish_id, clock)
+    # Standard Surface Initialization
+    initial_spread = 2000 # radius
+    pos = np.zeros((no_fish, 4))
+    vel = np.zeros((no_fish, 4))
+    theta = np.random.rand(no_fish) * math.pi * 2 
+    r = np.random.rand(no_fish) * initial_spread + 500
+    # pos[:,:2] = initial_spread * (np.random.rand(no_fish, 2) - 0.5) #+ arena_center[:2] # x,y
+    pos[:,0] = r * np.cos(theta)
+    pos[:,1] = r * np.sin(theta)
+    pos[:,2] = 10 * np.random.rand(1, no_fish) # z, all fish at same noise-free depth results in LJ lock
+    pos[:,3] = 2*math.pi * (np.random.rand(1, no_fish) - 0.5) # phi
 
-# Simulate
-print('#### WELCOME TO BLUESIM ####')
-print('Progress:', end=' ', flush=True)
-t_start = time.time()
-simulation_steps = no_fish*simulation_time*clock_freq # overall
-steps = 0
-prog_incr = 0.1
+    # fix leader pos sort of center at the middle, this can be further overwritten in the experiment file
+    pos[0,0] = 600 #arena_center[:2] 
+    pos[0,1] = -1300
+    pos[0,2] = 0
+    pos[0,3] = 0
 
-# print("Initial positions [x,y,z,theta]")
-# print(pos)
+    # Create Environment, Dynamics, And Heap
+    environment = Environment(pos, vel, fish_specs, arena)
+    dynamics = Dynamics(environment)
+    H = Heap(no_fish)
 
-while True:
-    progress = steps/simulation_steps
-    if progress >= prog_incr:
-        print('{}%'.format(round(prog_incr*100)), end=' ', flush=True)
-        prog_incr += 0.1
-    if steps >= simulation_steps:
-            break
+    # Create Fish Instances And Insert Into Heap
+    fishes = []
+    for fish_id in range(no_fish):
+        clock = random.gauss(clock_rate, 0.1*clock_rate)
+        fishes.append(Fish(fish_id, dynamics, environment))
+        H.insert(fish_id, clock)
 
-    (uuid, event_time) = H.delete_min()
-    duration = random.gauss(clock_rate, 0.1*clock_rate)
-    fishes[uuid].run(duration)
-    H.insert(uuid, event_time + duration)
+    # Simulate
+    print("Starting trial "+str(i_trial+1)+':\n')
+    print('Progress:', end=' ', flush=True)
+    t_start = time.time()
+    simulation_steps = no_fish*simulation_time*clock_freq # overall
+    steps = 0
+    prog_incr = 0.1
 
-    steps += 1
+    # print("Initial positions [x,y,z,theta]")
+    # print(pos)
 
-print('| Duration: {} sec\n -'.format(round(time.time()-t_start)))
+    # Main block for eular integration 
+    # Note that the "step" here is not exactly the time step. For each time step, there are no_fish steps
+    while True:
 
-# Save Data
-filename = time.strftime("%y%m%d_%H%M%S") # date_time
-environment.log_to_file(filename)
-log_meta()
+        # Displaying and keeping track of progress
+        progress = steps/simulation_steps
+        if progress >= prog_incr:
+            print('{}%'.format(round(prog_incr*100)), end=' ', flush=True)
+            prog_incr += 0.1
+        if steps >= simulation_steps:
+                break
 
-print('Simulation data got saved in ./logfiles/{}_data.txt,\nand corresponding experimental info in ./logfiles/{}_meta.txt.\n -'.format(filename, filename))
-print('Create corresponding animation by running >python animation.py {}'.format(filename))
-print('#### GOODBYE AND SEE YOU SOON AGAIN ####')
+        # time step for one fish 
+        (uuid, event_time) = H.delete_min() # pull a fish from the heap
+        duration = random.gauss(clock_rate, 0.1*clock_rate)
+        fishes[uuid].run(duration) # RUN THE TIMESTEP FOR THE FISH
+        H.insert(uuid, event_time + duration) # return the fish to the heap after updating its clock
+
+        steps += 1
+
+    print('| Duration: {} sec\n -'.format(round(time.time()-t_start)))
+
+    # Save Data
+    environment.log_to_file(filename+"_"+str(i_trial))
+    log_meta(filename+"_"+str(i_trial))
+
+    print('Simulation data got saved in ./logfiles/{}_data.txt,\nand corresponding experimental info in ./logfiles/{}_meta.txt.\n -'.format(filename, filename))
+    # print('Create corresponding animation by running >python animation.py {}'.format(filename))
+    # print('#### GOODBYE AND SEE YOU SOON AGAIN ####')
+
+    # Run animation right after the code
+    t_start = time.time()
+    os.system(f'python animation.py '+filename+"_"+str(i_trial))
+    print('| Duration: {} sec\n -'.format(round(time.time()-t_start)))
+
+
+    # # Run animation saving right after the code
+    # t_start = time.time()
+    # os.system(f'python recording.py '+filename+"_"+str(i_trial))
+    # print('| Duration: {} sec\n -'.format(round(time.time()-t_start)))
+
+# Run agent plots right after the code
+os.system(f'python plot_agents.py '+filename)

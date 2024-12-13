@@ -69,8 +69,8 @@ colors = np.array([cm.Blues(k) for k in v])
 
 # Create Animation
 fig = ipv.figure()
-ipv.xlim(0, arena[0])
-ipv.ylim(0, arena[1])
+ipv.xlim(-arena[0]/2, arena[0]/2)
+ipv.ylim(-arena[1]/2, arena[1]/2)
 ipv.zlim(0, arena[2])
 ipv.style.use('dark')
 
