@@ -61,16 +61,19 @@ print(' ')
 # Experimental Parameters
 no_fish = 5 # default 
 no_fish = getattr(importlib.import_module('fishfood.' + experiment_file), 'N_fish', no_fish)  # overwrite if the experiment file specify
+
 no_leader = 1 # default 
 no_leader = getattr(importlib.import_module('fishfood.' + experiment_file), 'N_leader', no_leader)  # overwrite if the experiment file specify
-simulation_time = 500 # [s]
+
+simulation_time = 160 # [s]
 clock_freq = 2 # [Hz]
 clock_rate = 1/clock_freq # [s]
-no_trial = 1 # number of simulations performed 
+
+no_trial = 3 # number of simulations performed 
 filename = time.strftime("%y%m%d_%H%M%S") # date_time
 
 # Fish Specifications
-v_range=2000 # visual range, [mm] # 1 to 2 m
+v_range=1500 # visual range, [mm] # 1 to 2 m
 w_blindspot=50 # width of blindspot, [mm]
 # w_blindspot=3141 # TODO: figure out mapping mm to degrees
 r_sphere=50 # radius of blocking sphere for occlusion, [mm]
@@ -83,29 +86,33 @@ arena_list = [6000,6000,2000] # 6x6x2 m cylindrical arena
 arena = np.array(arena_list)
 # arena_center = arena / 2.0
 
+leader_initial_z = 0
+leader_initial_z = getattr(importlib.import_module('fishfood.' + experiment_file), 'leader_initial_z', leader_initial_z)  # overwrite if the experiment file specify
+
 # repeating trials
 for i_trial in range(no_trial):
 
-    # seed random generator
+    # # seed random generator
     random.seed(i_trial) # for heap
     np.random.seed(i_trial) # for initial condition
 
+    leader_initial = [-2800, 0, leader_initial_z]
     # Standard Surface Initialization
-    initial_spread = 2000 # radius
+    initial_spread = 1500 # radius
     pos = np.zeros((no_fish, 4))
     vel = np.zeros((no_fish, 4))
     theta = np.random.rand(no_fish) * math.pi * 2 
-    r = np.random.rand(no_fish) * initial_spread + 500
+    r = np.random.rand(no_fish) * initial_spread 
     # pos[:,:2] = initial_spread * (np.random.rand(no_fish, 2) - 0.5) #+ arena_center[:2] # x,y
-    pos[:,0] = r * np.cos(theta)
-    pos[:,1] = r * np.sin(theta)
+    pos[:,0] = r * np.cos(theta) + leader_initial[0]
+    pos[:,1] = r * np.sin(theta) + leader_initial[1]
     pos[:,2] = 10 * np.random.rand(1, no_fish) # z, all fish at same noise-free depth results in LJ lock
     pos[:,3] = 2*math.pi * (np.random.rand(1, no_fish) - 0.5) # phi
 
     # fix leader pos sort of center at the middle, this can be further overwritten in the experiment file
-    pos[0,0] = 600 #arena_center[:2] 
-    pos[0,1] = -1300
-    pos[0,2] = 0
+    pos[0,0] = leader_initial[0] #arena_center[:2] 
+    pos[0,1] = leader_initial[1]
+    pos[0,2] = leader_initial[2]
     pos[0,3] = 0
 
     # Create Environment, Dynamics, And Heap
@@ -173,4 +180,4 @@ for i_trial in range(no_trial):
     # print('| Duration: {} sec\n -'.format(round(time.time()-t_start)))
 
 # Run agent plots right after the code
-os.system(f'python plot_agents.py '+filename)
+os.system(f'python plot_agents_test.py '+filename)

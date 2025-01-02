@@ -185,10 +185,10 @@ ax3.set(ylabel='distance (mm)')
 fig1.savefig('animations/{}_trajectory.png'.format(filename),facecolor='white',transparent=False,dpi=500)  # Replace with desired filename
 
 
-# remove axis to save vector file size
-ax1.remove()
-ax2.remove()
-fig1.savefig('animations/{}_trajectory.svg'.format(filename),facecolor='white',transparent=False,dpi=500)  # vector file but it's huge
+# # remove axis to save vector file size
+# ax1.remove()
+# ax2.remove()
+# fig1.savefig('animations/{}_trajectory.svg'.format(filename),facecolor='white',transparent=False,dpi=500)  # vector file but it's huge
 
 # ax3.set_xlim([150, 250])
 # ax3.set_xticks([150, 250])

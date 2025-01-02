@@ -430,6 +430,7 @@ class Fish():
         safe_distance = 100 # mm. compared to body length 150 mm
         approach_distance = 1000 # mm 1000 mm
         distance = 200 # 200 mm distance to maintain
+        angle = -90
 
         if self.id == 0: # leader
             # print("************at leader************")
@@ -439,6 +440,7 @@ class Fish():
             # self.forward(magnitude)
 
             self.spin(0.1, 0.1, True) # caudal, pect, cw
+            self.forward(0.1)
             self.depth_ctrl_psensor(250,0.1) # target depth, dorsal freq
 
         elif self.id == 1 and leds.size != 0: # follower and leader can be seen 
@@ -461,7 +463,7 @@ class Fish():
 
             # SET GOAL POSITIN
             # set angle to -90 to follow on the right (outside), 90 to follow on the left (inside)
-            new_pos = self.translate(r_move_g, heading_vector, -90, distance)  #   pos, vector, keep_angle,distance)
+            new_pos = self.translate(r_move_g, heading_vector, angle, distance)  #   pos, vector, keep_angle,distance)
 
             ########################################################################
             # zonal approach block 

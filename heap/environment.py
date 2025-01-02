@@ -6,6 +6,7 @@ import numpy as np
 from scipy.spatial.distance import cdist
 import sys
 import pdb
+import os
 U_LED_DX = 86 # [mm] leds x-distance on BlueBot
 U_LED_DZ = 86 # [mm] leds z-distance on BlueBot
 
@@ -43,6 +44,9 @@ class Environment():
     def log_to_file(self, filename):
         """Logs tracking data to file
         """
+        if not os.path.exists('./logfiles/'):
+            # Create the folder
+            os.makedirs('logfiles')
         np.savetxt('./logfiles/{}_data.txt'.format(filename), self.tracking, fmt='%.2f', delimiter=',')
 
     def init_tracking(self):
@@ -94,9 +98,10 @@ class Environment():
         self.pos[:,2] = np.clip(self.pos[:,2], 0, self.arena_size[2])
 
         # H.KO: change to cylindrical arenas
-        r = np.linalg.norm(self.pos[:2])
+        # Di -- add axis 1 to seperate robots
+        r = np.linalg.norm(self.pos[:2], axis = 1)
         self.pos[:,0] = self.pos[:,0]/r*np.clip(r, 0, self.arena_size[0]/2)
-        self.pos[:,1] = self.pos[:,1]/r*np.clip(r, 0, self.arena_size[0]/2)    
+        self.pos[:,1] = self.pos[:,1]/r*np.clip(r, 0, self.arena_size[0]/2)
 
         # Initial relative positions
         a_ = np.reshape(self.pos, (1, self.no_robots*self.no_states))
@@ -121,6 +126,10 @@ class Environment():
         r = np.linalg.norm(pos[:2])
         self.pos[source_id,0] = pos[0]/r*np.clip(r, 0, self.arena_size[0]/2)
         self.pos[source_id,1] = pos[1]/r*np.clip(r, 0, self.arena_size[0]/2)        
+
+        # print(" in environment/update_states, print pos") 
+        # print(self.pos)   
+        # print("------")
 
         # Relative positions
         pos_others = np.reshape(self.pos, (1,self.no_robots*self.no_states))
@@ -427,30 +436,6 @@ class Environment():
             
             all_blobs = np.append(all_blobs, relative_coordinates, axis=1)
 
-        # p = np.random.permutation(np.shape(all_blobs)[1]) # mix up into random order
 
-        # print(" in enviornment/calc_relative_leds")
-        # print("leds xyz in abs frame (with reflection)")
-        # print(np.array(leds_list) )
-        # print("leds xyz in robot frame ")
-        # print(tmp )
-        # # print(np.array(tmp) )
-        # print("leds pqr in robot frame")
-        # print(all_blobs)
-        # if all_blobs.shape == 0:
-        # print('leds in env')
-        # print(all_blobs)
-        # input()
-    
-        # # print(self.leds_pos)
-        # print("all_blobs")
-        # print(all_blobs)
-        # print("p")
-        # print(p)
-
-        # print("detected relative LEDs")
-        # print(all_blobs[:,p])
-
-        # return all_blobs[:,p]
         return all_blobs
 

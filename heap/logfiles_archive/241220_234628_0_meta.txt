@@ -1,0 +1,17 @@
+{
+  "Experiment": "exp1",
+  "Number of fishes": 2,
+  "Number of leaders": 1,
+  "Number of trials": 3,
+  "Simulation time [s]": 160,
+  "Clock frequency [Hz]": 2,
+  "Arena [mm]": [
+    6000,
+    6000,
+    2000
+  ],
+  "Visual range [mm]": 1500,
+  "Width of blindspot [mm]": 50,
+  "Radius of blocking sphere [mm]": 50,
+  "Visual noise magnitude [% of distance]": 0.1
+}
