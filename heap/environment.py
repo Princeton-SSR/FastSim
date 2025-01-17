@@ -180,15 +180,22 @@ class Environment():
         abs_leds = self.leds_pos
 
         if self.n_magnitude: # no overwrites of self.rel_pos and self.dist
+            print(' ')
+            print("++++++++++ in enviroment/get robots/ before noise+++++++++++")
+            print("self.rel_pos is \n", self.rel_pos.shape)
+            print(self.rel_pos)
+            print("no noise dist is ", np.linalg.norm(self.rel_pos[:,:3], axis = 1))
+
             n_rel_pos, n_dist = self.visual_noise(source_id, rel_pos)
 
-            # print("++++++++++ in enviroment/get_robots+++++++++++")
-            # print("self.rel_pos", self.rel_pos.shape)
+            print("++++++++++ in enviroment/get robots/ after noise+++++++++++")
+            # print("self.rel_pos is \n", self.rel_pos.shape)
             # print(self.rel_pos)
 
-            # print("n_rel_pos (noise added to relative position)", n_rel_pos.shape)
-            # print(n_rel_pos)
-
+            print("n_rel_pos (noise added to relative position)", n_rel_pos.shape)
+            print(n_rel_pos)
+            print("n_dist (noise added to relative position)", n_dist.shape)
+            print(n_dist)
             # print("leds", leds.shape)
             # print(leds)
 
@@ -196,7 +203,7 @@ class Environment():
 
             return (robots, n_rel_pos, n_dist, leds, abs_leds)
         
-        # print("++++++++++ in enviroment/get_robots+++++++++++")
+        # print("++++++++++ in enviroment/get robots+++++++++++")
         # print("self.rel_pos")
         # print(self.rel_pos)
         # print("+++++++++++++++++++++")

@@ -39,20 +39,22 @@ leader_forward = 0.07
 follower_approach = 0.8
 follower_following_a, follower_following_b = 0.1, 0.2
 
-## same plane, sapcing 200
-# safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, 180, 0 # F1S
+# safe_distance, approach_distance, distance, angle, pitch_range = 200, 1000, 200, 180, 0 # F1S
 # safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, -120, 0 # F2S
-# safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, 90, 0 # F3S trail
+# safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, 90, 0 # F3S trail#1 not working
 
-## different plant, sapcing 300
+
 # safe_distance, approach_distance, distance, angle, pitch_range = 200, 1000, 200, 180, -40 # F1B
 # safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, -120,-40 # F2B
 # safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, 90,-40 # F3B
 
-## different plant, sapcing 200
 # safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 140, 180, -40 # F1B
 # safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 140, -120,-40 # F2B
-safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 140, 90,-40 # F3B
+
+follower_following_a, follower_following_b = 0.1, 0.4
+safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, 90, 0 # F3S trail#1 not working
+
+# safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 140, 90,-40 # F3B
 
 class Fish():
     """Bluebot instance
@@ -83,10 +85,6 @@ class Fish():
         # (1) Get neighbors from environment
         robots, rel_pos, dist, leds, abs_leds = self.environment.get_robots(self.id)
 
-        # print("++++++++++ in exp_testing+++++++++++")
-        # print("rel_pos", rel_pos)
-        # print("dist", dist)
-        
         # (2) Move according to the self.move algorithm below, perform Eular integration 
         target_pos, vel = self.move(robots, rel_pos, dist, leds, abs_leds, duration)
 

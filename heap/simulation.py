@@ -65,11 +65,11 @@ no_fish = getattr(importlib.import_module('fishfood.' + experiment_file), 'N_fis
 no_leader = 1 # default 
 no_leader = getattr(importlib.import_module('fishfood.' + experiment_file), 'N_leader', no_leader)  # overwrite if the experiment file specify
 
-simulation_time = 160 # [s]
+simulation_time = 100 # [s]
 clock_freq = 2 # [Hz]
 clock_rate = 1/clock_freq # [s]
 
-no_trial = 3 # number of simulations performed 
+no_trial = 1 # number of simulations performed 
 filename = time.strftime("%y%m%d_%H%M%S") # date_time
 
 # Fish Specifications
@@ -77,7 +77,7 @@ v_range=1500 # visual range, [mm] # 1 to 2 m
 w_blindspot=50 # width of blindspot, [mm]
 # w_blindspot=3141 # TODO: figure out mapping mm to degrees
 r_sphere=50 # radius of blocking sphere for occlusion, [mm]
-n_magnitude=0.1 # visual noise magnitude, [% of distance]
+n_magnitude=100 # visual noise magnitude, [% of distance]
 fish_specs = (v_range, w_blindspot, r_sphere, n_magnitude)
 
 # Standard Tank
@@ -96,7 +96,7 @@ for i_trial in range(no_trial):
     random.seed(i_trial) # for heap
     np.random.seed(i_trial) # for initial condition
 
-    leader_initial = [-2800, 0, leader_initial_z]
+    leader_initial = [-2000, 0, leader_initial_z]
     # Standard Surface Initialization
     initial_spread = 1500 # radius
     pos = np.zeros((no_fish, 4))
@@ -104,7 +104,7 @@ for i_trial in range(no_trial):
     theta = np.random.rand(no_fish) * math.pi * 2 
     r = np.random.rand(no_fish) * initial_spread 
     # pos[:,:2] = initial_spread * (np.random.rand(no_fish, 2) - 0.5) #+ arena_center[:2] # x,y
-    pos[:,0] = r * np.cos(theta) + leader_initial[0]
+    pos[:,0] = - r * np.cos(theta) + leader_initial[0]
     pos[:,1] = r * np.sin(theta) + leader_initial[1]
     pos[:,2] = 10 * np.random.rand(1, no_fish) # z, all fish at same noise-free depth results in LJ lock
     pos[:,3] = 2*math.pi * (np.random.rand(1, no_fish) - 0.5) # phi
@@ -143,6 +143,7 @@ for i_trial in range(no_trial):
     while True:
 
         # Displaying and keeping track of progress
+        print(" ========================================= in simulation, at step {}====================================".format(steps))
         progress = steps/simulation_steps
         if progress >= prog_incr:
             print('{}%'.format(round(prog_incr*100)), end=' ', flush=True)
@@ -168,10 +169,10 @@ for i_trial in range(no_trial):
     # print('Create corresponding animation by running >python animation.py {}'.format(filename))
     # print('#### GOODBYE AND SEE YOU SOON AGAIN ####')
 
-    # Run animation right after the code
-    t_start = time.time()
-    os.system(f'python animation.py '+filename+"_"+str(i_trial))
-    print('| Duration: {} sec\n -'.format(round(time.time()-t_start)))
+    # # Run animation right after the code
+    # t_start = time.time()
+    # os.system(f'python animation.py '+filename+"_"+str(i_trial))
+    # print('| Duration: {} sec\n -'.format(round(time.time()-t_start)))
 
 
     # # Run animation saving right after the code
