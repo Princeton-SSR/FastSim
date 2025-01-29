@@ -24,6 +24,7 @@ U_LED_DX = 86 # [mm] leds x-distance on BlueBot
 U_LED_DZ = 86 # [mm] leds z-distance on BlueBot
 N_fish = 2
 EXPERIMENT_NAME = 'Follow on the inside, zone'
+Leader_initial = [1000, 1200, 0, pi * 3/4]
 
 class Fish():
     """Bluebot instance

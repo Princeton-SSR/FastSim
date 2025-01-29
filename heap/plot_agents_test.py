@@ -23,11 +23,17 @@ import sys
 # filename = '240219_213513'
 # Read meta file
 
-try:
-    filename = sys.argv[1]
-except:
-    print('Provide prefix of data you want to animate in format yymmdd_hhmmss as command line argument, e.g.:\n >python plot_agents.py 240219_213513')
-    sys.exit()
+# filename = '250129_094252'  #"F2S"
+filename = []
+# filename = '250129_121536'
+
+
+if not filename:
+    try:
+        filename = sys.argv[1]
+    except:
+        print('Provide prefix of data you want to animate in format yymmdd_hhmmss as command line argument, e.g.:\n >python plot_agents.py 240219_213513')
+        sys.exit()
 # read data
 try:
     data = np.loadtxt('./logfiles/{}_data.txt'.format(filename), delimiter=',')

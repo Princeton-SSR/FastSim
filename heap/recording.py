@@ -76,7 +76,7 @@ ax.plot_surface(x_grid,y_grid ,z_grid, alpha=0.2, color='gray', edgecolor ='none
 
 # set point-of-view: specified by (altitude degrees, azimuth degrees)
 ax.invert_zaxis()
-# ax.view_init(20, 20)
+ax.view_init(20, 20)
 # ax.view_init(0, 90)
 
 
@@ -113,8 +113,9 @@ def animate(i):
         pt.set_3d_properties(z[-1:])
 
 
-    # ax.view_init(20, 20+0.1 * i)
+    # ax.view_init(40, 20+0.1 * i)
     ax.view_init(90, 20+0.1 * i)
+    # ax.view_init(10, 20+0.1 * i)
     ax.set_aspect('equal', adjustable='box') # for python >3.7
     fig.canvas.draw()
 

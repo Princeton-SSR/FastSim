@@ -98,8 +98,12 @@ class Environment():
         self.pos[:,2] = np.clip(self.pos[:,2], 0, self.arena_size[2])
 
         # H.KO: change to cylindrical arenas
-        # Di -- add axis 1 to seperate robots
-        r = np.linalg.norm(self.pos[:2], axis = 1)
+        r = np.linalg.norm(self.pos[:2])
+        # print("in enviornment, init_states\n")
+        # print("r is ", r)
+        # print("in enviornment, init_states\n", self.pos)
+        # print("self.pos[:,0] is \n", self.pos[:,0])
+
         self.pos[:,0] = self.pos[:,0]/r*np.clip(r, 0, self.arena_size[0]/2)
         self.pos[:,1] = self.pos[:,1]/r*np.clip(r, 0, self.arena_size[0]/2)
 
@@ -180,26 +184,26 @@ class Environment():
         abs_leds = self.leds_pos
 
         if self.n_magnitude: # no overwrites of self.rel_pos and self.dist
-            print(' ')
-            print("++++++++++ in enviroment/get robots/ before noise+++++++++++")
-            print("self.rel_pos is \n", self.rel_pos.shape)
-            print(self.rel_pos)
-            print("no noise dist is ", np.linalg.norm(self.rel_pos[:,:3], axis = 1))
+            # print(' ')
+            # print("++++++++++ in enviroment/get robots/ before noise+++++++++++")
+            # print("self.rel_pos is \n", self.rel_pos.shape)
+            # print(self.rel_pos)
+            # print("no noise dist is ", np.linalg.norm(self.rel_pos[:,:3], axis = 1))
 
             n_rel_pos, n_dist = self.visual_noise(source_id, rel_pos)
 
-            print("++++++++++ in enviroment/get robots/ after noise+++++++++++")
-            # print("self.rel_pos is \n", self.rel_pos.shape)
-            # print(self.rel_pos)
+            # print("++++++++++ in enviroment/get robots/ after noise+++++++++++")
+            # # print("self.rel_pos is \n", self.rel_pos.shape)
+            # # print(self.rel_pos)
 
-            print("n_rel_pos (noise added to relative position)", n_rel_pos.shape)
-            print(n_rel_pos)
-            print("n_dist (noise added to relative position)", n_dist.shape)
-            print(n_dist)
-            # print("leds", leds.shape)
-            # print(leds)
+            # print("n_rel_pos (noise added to relative position)", n_rel_pos.shape)
+            # print(n_rel_pos)
+            # print("n_dist (noise added to relative position)", n_dist.shape)
+            # print(n_dist)
+            # # print("leds", leds.shape)
+            # # print(leds)
 
-            # print("+++++++++++++++++++++")
+            # # print("+++++++++++++++++++++")
 
             return (robots, n_rel_pos, n_dist, leds, abs_leds)
         

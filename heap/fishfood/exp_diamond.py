@@ -4,10 +4,10 @@ Leader stop/swim forward
 follower follows on the right (set target on leader's right)
 (follower use only local LED info)
 
-Limited to 2 agents, 1 leader + 1 followers
+Expand to more than 2 agents, 1 leader + N followers (debugging)
 
 Running instrucion:
-go to enviornment python 3.x
+go to enviornment python 3.6
 $$ conda activate myenv36
 Go to 
 $$ cd */FastSim/heap
@@ -22,9 +22,15 @@ import warnings
 
 U_LED_DX = 86 # [mm] leds x-distance on BlueBot
 U_LED_DZ = 86 # [mm] leds z-distance on BlueBot
-N_fish = 2
-EXPERIMENT_NAME = 'Follow on the outside, zone'
-Leader_initial = [2000, -1200, 0, pi * 3/4]
+N_fish = 4
+EXPERIMENT_NAME = 'Six followers next to a leader'
+Leader_initial = [2000, 2000, 0, pi * 4/4]
+following_bearing = [120, 180, -120]
+
+# leader_forward = 0.07
+# follower_approach = 0.8
+follower_following_a, follower_following_b = 0.1, 0.3
+
 
 class Fish():
     """Bluebot instance
@@ -425,34 +431,30 @@ class Fish():
       
     def move(self, robots, rel_pos, dist, leds, abs_leds, duration):
         """Decision-making based on neighboring robots and corresponding move
-        """      
-
-        # Specify a distance range within which followers cease their actuation.
+        """
+                # Specify a distance range within which followers cease their actuation.
         safe_distance = 100 # mm. compared to body length 150 mm
         approach_distance = 1000 # mm 1000 mm
         distance = 200 # 200 mm distance to maintain
-        angle = -90
 
         if self.id == 0: # leader
             # print("************at leader************")
-            # magnitude = 0.2
+            magnitude = 0.1
 
             # self.stop()
             # self.forward(magnitude)
+# 
+            self.spin( 0.07, 0.003, True) # caudal, pect, cw
+            self.depth_ctrl_psensor(1000,0.1) # target depth, dorsal freq
 
-            self.spin(0.1, 0.1, True) # caudal, pect, cw
-            self.forward(0.1)
-            self.depth_ctrl_psensor(250,0.1) # target depth, dorsal freq
+        elif leds.size != 0: # follower
+            # print("************at follower 1************")
 
-        elif self.id == 1 and leds.size != 0: # follower and leader can be seen 
-
-            # print("************at follower************")
-
-            leds = leds[:3,:3] # leader's led         
+            leds = leds[:3,:3] # leader's led
             leds = self.parsing(leds)  # output leds in qpr in robot's frame
             duplet = self._pqr_to_xyz(leds)  # xyz of led_1 and led_2
             b3_pqr = leds[:,-1]
-            triplet = self._pqr_3_to_xyz(duplet, b3_pqr)
+            triplet = self._pqr_3_to_xyz(duplet, b3_pqr)     
             orientation = self._orientation(triplet)    
             heading_vector = triplet[:,2] - triplet[:,0]
             
@@ -462,42 +464,30 @@ class Fish():
             # calculate the distance with respect to the leader
             rel_dist = np.linalg.norm(r_move_g[0:2])
 
-            # SET GOAL POSITIN
-            # set angle to -90 to follow on the right (outside), 90 to follow on the left (inside)
-            new_pos = self.translate(r_move_g, heading_vector, angle, distance)  #   pos, vector, keep_angle,distance)
-
-            ########################################################################
-            # zonal approach block 
-
-            # rel_dist = np.linalg.norm(new_pos)
-
+            new_pos = self.translate( r_move_g, heading_vector,  following_bearing[self.id -1], distance)  #   pos, vector, keep_angle,distance)
+            # magnitude = np.tanh(np.linalg.norm(new_pos)/600)
             if rel_dist <= safe_distance:
                 # print('in zone 3: dead zone')
                 magnitude = 0
-                self.wait(0.1) # move backward, set pect freq
+                # self.wait(0.1) # move backward, set pect freq
                 # self.depth_ctrl_vision(r_move_g) 
+
 
             elif rel_dist > approach_distance: 
                 # print('in zone 1: approach zone')
-                magnitude = 0.8
+                magnitude = 1
                 self.home(new_pos, magnitude)
 
             else: 
                 # print('in zone 2: follow zone')
                 # magnitude = 0.4
-                magnitude = 0.3 + 0.4*rel_dist/approach_distance
+                # magnitude = follower_following_a + follower_following_b * rel_dist/approach_distance
+                # self.home(new_pos, magnitude)
+
+
+                magnitude = follower_following_a + follower_following_b * rel_dist/approach_distance
                 self.home(new_pos, magnitude)
-            
-            ########################################################################
-            # hyporboloc tangent block 
-            # magnitude = np.tanh(np.linalg.norm(new_pos)/600);
-            # self.home(new_pos, magnitude)
-
-            ########################################################################
-
             self.depth_ctrl_vision(r_move_g) 
-            # self.depth_ctrl_psensor(500,1) # target depth, dorsal freq
-
 
         else:
             ## turn clockwise if true, counter-clockwise if false?

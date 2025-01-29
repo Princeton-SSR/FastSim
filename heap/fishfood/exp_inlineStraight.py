@@ -23,36 +23,11 @@ import warnings
 U_LED_DX = 86 # [mm] leds x-distance on BlueBot
 U_LED_DZ = 86 # [mm] leds z-distance on BlueBot
 N_fish = 2
-EXPERIMENT_NAME = 'Leader swim in a straight line, Follow with zone control'
+N_follower = 2
+Leader_initial = [2000, -1200, 0, pi * 3/4]
+Follower_initial = [2200, -551, 0, pi ]
 
-# # Specify a distance range within which followers cease their actuation.
-# safe_distance = 100 # mm. compared to body length 150 mm
-# approach_distance = 1000 # mm 1000 mm
-# distance = 200 # 200 mm distance to maintain
-
-# angle = 180 # inline
-# angle = -120 # staggered on leader's left
-
-# pitch_range = 0 # abs(pitch) below which dorsal fin is not controlled
-
-leader_forward = 0.07
-follower_approach = 0.8
-follower_following_a, follower_following_b = 0.1, 0.2
-
-## same plane, sapcing 200
-# safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, 180, 0 # F1S
-# safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, -120, 0 # F2S
-# safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, 90, 0 # F3S trail
-
-## different plant, sapcing 300
-# safe_distance, approach_distance, distance, angle, pitch_range = 200, 1000, 200, 180, -40 # F1B
-# safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, -120,-40 # F2B
-# safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, 90,-40 # F3B
-
-## different plant, sapcing 200
-# safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 140, 180, -40 # F1B
-# safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 140, -120,-40 # F2B
-safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 140, 90,-40 # F3B
+EXPERIMENT_NAME = 'Follow on the outside, zone'
 
 class Fish():
     """Bluebot instance
@@ -83,10 +58,6 @@ class Fish():
         # (1) Get neighbors from environment
         robots, rel_pos, dist, leds, abs_leds = self.environment.get_robots(self.id)
 
-        # print("++++++++++ in exp_testing+++++++++++")
-        # print("rel_pos", rel_pos)
-        # print("dist", dist)
-        
         # (2) Move according to the self.move algorithm below, perform Eular integration 
         target_pos, vel = self.move(robots, rel_pos, dist, leds, abs_leds, duration)
 
@@ -99,11 +70,11 @@ class Fish():
         Args:
             r_move_g (np.array): Relative position of desired goal location in robot frame.
         """
-        # pitch_range = 0 # abs(pitch) below which dorsal fin is not controlled
+        pitch_range = -40 # abs(pitch) below which dorsal fin is not controlled
         pitch = np.arctan2(r_move_g[2], sqrt(r_move_g[0]**2 + r_move_g[1]**2)) * 180 / pi
 
         if pitch > pitch_range:
-            self.dorsal = 1.0
+            self.dorsal = 0.4
         elif pitch < -pitch_range:
             self.dorsal = 0
 
@@ -185,23 +156,16 @@ class Fish():
     def wait(self, pect):
         # swim backward
         self.caudal = 0
+        self.pect_r = pect
+        self.pect_l = pect
+
+    def stop(self):
+        """
+        fully stopped (no fin actuated except dorsal)
+        """
+        self.caudal = 0
         self.pect_r = 0
-        self.pect_l = 0
-
-
-    def align(self, heading):
-
-        if heading > 0:
-            self.pect_r = 0
-            self.pect_l = 0.1
-            # pecto_l.on()
-            # pecto_r.off()
-
-        else:
-            self.pect_r = 0.1
-            self.pect_l = 0
-            # pecto_r.on()
-            # pecto_l.off()
+        self.pect_l = 0   
 
     def forward(self, magnitude):
         self.caudal = magnitude
@@ -235,40 +199,62 @@ class Fish():
         # Normalize the vector
         normalized_vector = vector / norm
 
+
+
         new_pos = pos + rotation_matrix_z@normalized_vector * distance
-
-        return new_pos
-
-    # def calc_relative_angles(self, blobs): #copied and adapted from BlueSwarm Code "avoid_duplicates_by_angle" #pw split this up in env and fish part?
-    #     """Use right and left cameras just up to the xz-plane such that the overlapping camera range disappears and there are no duplicates.
-
-    #     Returns:
-    #         tuple: all_blobs (that are valid, i.e. not duplicates) and their all_angles
-    #     """
-    #     angles = np.empty(0)
-    #     for i in range(np.shape(blobs)[1]):
-    #         led = blobs[:,i]
-    #         angle = np.arctan2(led[1], led[0])
-    #         angles = np.append(angles, angle)
-
-    #     return angles #angles in rad!
-
-    # def calc_relative_pitch(self, blobs): #copied and adapted from BlueSwarm Code "avoid_duplicates_by_angle" #pw split this up in env and fish part?
-    #     """Use right and left cameras just up to the xz-plane such that the overlapping camera range disappears and there are no duplicates.
-
-    #     Returns:
-    #         tuple: all_blobs (that are valid, i.e. not duplicates) and their all_angles
-    #     """
 
         
 
-    #     pitches = np.empty(0)
-    #     for i in range(np.shape(blobs)[1]):
-    #         led = blobs[:,i]
-    #         pitch = np.arctan2(led[2], sqrt(led[0]**2 + led[1]**2)) * 180 / pi
-    #         pitches = np.append(pitches, pitch)
+        # print("in fish_LF/translate")
+        # print("pos")
+        # print(pos)
 
-    #     return pitches #angles in deg!
+        # print("translate direction")
+        # print("normalized vector")
+        # print(normalized_vector)
+
+
+        # print("rotation_matrix_z@normalized_vector")
+        # print(rotation_matrix_z@normalized_vector)
+
+        # print("rotation_matrix_z@normalized_vector* distance")
+        # print(rotation_matrix_z@normalized_vector * distance)
+
+
+        # print()
+
+        return new_pos
+
+    def calc_relative_angles(self, blobs): #copied and adapted from BlueSwarm Code "avoid_duplicates_by_angle" #pw split this up in env and fish part?
+        """Use right and left cameras just up to the xz-plane such that the overlapping camera range disappears and there are no duplicates.
+
+        Returns:
+            tuple: all_blobs (that are valid, i.e. not duplicates) and their all_angles
+        """
+        angles = np.empty(0)
+        for i in range(np.shape(blobs)[1]):
+            led = blobs[:,i]
+            angle = np.arctan2(led[1], led[0])
+            angles = np.append(angles, angle)
+
+        return angles #angles in rad!
+
+    def calc_relative_pitch(self, blobs): #copied and adapted from BlueSwarm Code "avoid_duplicates_by_angle" #pw split this up in env and fish part?
+        """Use right and left cameras just up to the xz-plane such that the overlapping camera range disappears and there are no duplicates.
+
+        Returns:
+            tuple: all_blobs (that are valid, i.e. not duplicates) and their all_angles
+        """
+
+        
+
+        pitches = np.empty(0)
+        for i in range(np.shape(blobs)[1]):
+            led = blobs[:,i]
+            pitch = np.arctan2(led[2], sqrt(led[0]**2 + led[1]**2)) * 180 / pi
+            pitches = np.append(pitches, pitch)
+
+        return pitches #angles in deg!
 
     def parsing(self, blobs): #copied and adapted from BlueSwarm Code "avoid_duplicates_by_angle" #pw split this up in env and fish part?
         """sort LEDs and output led 1, 2, 3 in order
@@ -444,7 +430,11 @@ class Fish():
         """Decision-making based on neighboring robots and corresponding move
         """      
 
-
+        # Specify a distance range within which followers cease their actuation.
+        safe_distance = 100 # mm. compared to body length 150 mm
+        approach_distance = 1000 # mm 1000 mm
+        distance = 200 # 200 mm distance to maintain
+        angle = 120
 
         if self.id == 0: # leader
             # print("************at leader************")
@@ -453,9 +443,9 @@ class Fish():
             # self.stop()
             # self.forward(magnitude)
 
-            # self.spin(0.1, 0.1, True) # caudal, pect, cw
-            self.forward(leader_forward)
-            self.depth_ctrl_psensor(500,0.3) # target depth, dorsal freq
+            self.spin(0.1, 0.1, True) # caudal, pect, cw
+            self.forward(0.1)
+            self.depth_ctrl_psensor(800,0.4) # target depth, dorsal freq
 
         elif self.id == 1 and leds.size != 0: # follower and leader can be seen 
 
@@ -479,8 +469,6 @@ class Fish():
             # set angle to -90 to follow on the right (outside), 90 to follow on the left (inside)
             new_pos = self.translate(r_move_g, heading_vector, angle, distance)  #   pos, vector, keep_angle,distance)
 
-            heading = np.arctan2(new_pos[1], new_pos[0]) * 180 / pi
-
             ########################################################################
             # zonal approach block 
 
@@ -489,19 +477,18 @@ class Fish():
             if rel_dist <= safe_distance:
                 # print('in zone 3: dead zone')
                 magnitude = 0
-                # self.wait(0.1) # move backward, set pect freq
+                self.wait(0.1) # move backward, set pect freq
                 # self.depth_ctrl_vision(r_move_g) 
-                self.align(heading)
 
             elif rel_dist > approach_distance: 
                 # print('in zone 1: approach zone')
-                magnitude = follower_approach 
+                magnitude = 0.8
                 self.home(new_pos, magnitude)
 
             else: 
                 # print('in zone 2: follow zone')
                 # magnitude = 0.4
-                magnitude = follower_following_a + follower_following_b * rel_dist/approach_distance
+                magnitude = 0.3 + 0.4*rel_dist/approach_distance
                 self.home(new_pos, magnitude)
             
             ########################################################################

@@ -65,16 +65,16 @@ no_fish = getattr(importlib.import_module('fishfood.' + experiment_file), 'N_fis
 no_leader = 1 # default 
 no_leader = getattr(importlib.import_module('fishfood.' + experiment_file), 'N_leader', no_leader)  # overwrite if the experiment file specify
 
-simulation_time = 100 # [s]
-clock_freq = 2 # [Hz]
+simulation_time = 140 # [s]
+clock_freq = 5 # [Hz]
 clock_rate = 1/clock_freq # [s]
 
-no_trial = 1 # number of simulations performed 
+no_trial = 3 # number of simulations performed 
 filename = time.strftime("%y%m%d_%H%M%S") # date_time
 
 # Fish Specifications
-v_range=1500 # visual range, [mm] # 1 to 2 m
-w_blindspot=50 # width of blindspot, [mm]
+v_range=3000 # visual range, [mm] # 1 to 2 m
+w_blindspot=5 # width of blindspot, [mm]
 # w_blindspot=3141 # TODO: figure out mapping mm to degrees
 r_sphere=50 # radius of blocking sphere for occlusion, [mm]
 n_magnitude=100 # visual noise magnitude, [% of distance]
@@ -82,13 +82,16 @@ fish_specs = (v_range, w_blindspot, r_sphere, n_magnitude)
 
 # Standard Tank
 # arena_list = [1780, 1780, 1170]
-arena_list = [6000,6000,2000] # 6x6x2 m cylindrical arena
+arena_list = [6000,6000,2000, math.pi ] # 6x6x2 m cylindrical arena
 arena = np.array(arena_list)
 # arena_center = arena / 2.0
 
-leader_initial_z = 0
-leader_initial_z = getattr(importlib.import_module('fishfood.' + experiment_file), 'leader_initial_z', leader_initial_z)  # overwrite if the experiment file specify
 
+leader_initial = [-2000, 0, 0, math.pi/2]
+leader_initial = getattr(importlib.import_module('fishfood.' + experiment_file), 'Leader_initial', leader_initial)  # overwrite if the experiment file specify
+
+follower_initial = []
+follower_initial = getattr(importlib.import_module('fishfood.' + experiment_file), 'Follower_initial', follower_initial)  # overwrite if the experiment file specify
 # repeating trials
 for i_trial in range(no_trial):
 
@@ -96,9 +99,9 @@ for i_trial in range(no_trial):
     random.seed(i_trial) # for heap
     np.random.seed(i_trial) # for initial condition
 
-    leader_initial = [-2000, 0, leader_initial_z]
+    
     # Standard Surface Initialization
-    initial_spread = 1500 # radius
+    initial_spread = 500 # radius
     pos = np.zeros((no_fish, 4))
     vel = np.zeros((no_fish, 4))
     theta = np.random.rand(no_fish) * math.pi * 2 
@@ -113,7 +116,17 @@ for i_trial in range(no_trial):
     pos[0,0] = leader_initial[0] #arena_center[:2] 
     pos[0,1] = leader_initial[1]
     pos[0,2] = leader_initial[2]
-    pos[0,3] = 0
+    pos[0,3] = leader_initial[3]
+    print("leader pos", pos[0,:])
+
+          
+    if follower_initial:
+        pos[1,0] = follower_initial[0] #arena_center[:2] 
+        pos[1,1] = follower_initial[1]
+        pos[1,2] = follower_initial[2]
+        pos[1,3] = follower_initial[3] 
+
+    # print("follower pos y", pos[1,:])
 
     # Create Environment, Dynamics, And Heap
     environment = Environment(pos, vel, fish_specs, arena)
@@ -143,7 +156,7 @@ for i_trial in range(no_trial):
     while True:
 
         # Displaying and keeping track of progress
-        print(" ========================================= in simulation, at step {}====================================".format(steps))
+        # print(" ========================================= in simulation, at step {}====================================".format(steps))
         progress = steps/simulation_steps
         if progress >= prog_incr:
             print('{}%'.format(round(prog_incr*100)), end=' ', flush=True)

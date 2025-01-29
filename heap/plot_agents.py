@@ -20,14 +20,37 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 
-# filename = '240219_213513'
+# filename = '250120_165728'
+# filename = '250120_132639' # inner, small circle
+# filename = '250120_132919' # inner, big circle
+# filename = '250120_133157' # outer circle
+# filename = '250128_152451' # diamond leader straight
+# filename = '250128_154220' # diamond leader curved
+
+filename = '250129_094252'  #"F2S"
+
+# filename = '250116_163001'
+# sim_data_0 = {
+#     ## zero percent of vision error
+#     "F1S": '250116_162912',
+#     "F2S": '250116_163001',
+#     "F3S": '250116_163027',
+ 
+#     "F1B": '250116_162628',
+#     "F2B": '250116_161340',
+#     "F3B": '250116_162711',
+
+# }
+
 # Read meta file
 
-try:
-    filename = sys.argv[1]
-except:
-    print('Provide prefix of data you want to animate in format yymmdd_hhmmss as command line argument, e.g.:\n >python plot_agents.py 240219_213513')
-    sys.exit()
+if not filename:
+    try:
+        filename = sys.argv[1]
+    except:
+        print('Provide prefix of data you want to animate in format yymmdd_hhmmss as command line argument, e.g.:\n >python plot_agents.py 240219_213513')
+        sys.exit()
+
 # read data
 try:
     data = np.loadtxt('./logfiles/{}_data.txt'.format(filename), delimiter=',')
@@ -55,21 +78,29 @@ y_offset = 400 # to offset ax2
 # Set the font to be recognizable
 plt.rcParams['svg.fonttype'] = 'none'
 
-fig1, ax1s = plt.subplots(1, 4,constrained_layout = True,figsize=(10,3))
+fig3, ax1s = plt.subplots(1, 4,constrained_layout = True,figsize=(10,3))
 # plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.2, hspace=0.2)
 gs = ax1s[2].get_gridspec()
 ax1s[2].remove()
 ax1s[3].remove()
-ax1s[2] = fig1.add_subplot(gs[-2:])
+ax1s[2] = fig3.add_subplot(gs[-2:])
 # fig1.figsize=(10, 3)
-fig2, ax2s = plt.subplots(1, 1)
-
 # assign axis
 ax1 = ax1s[0]
 ax2 = ax1s[1]
 ax3 = ax1s[2]
+
+
+fig1, ax = plt.subplots(figsize=(3,3))
+
+
+fig2, ax2s = plt.subplots(1, 1)
 ax4 = ax2s
 
+fig3, ax3s = plt.subplots(1, 3)
+ax5 = ax3s[0]
+ax6 = ax3s[1]
+ax7 = ax3s[2]
 # Build your secondary mirror axes:
 # fig2, (ax3, ax4) = plt.subplots(1, 2)
 # map1 = ax3.imshow(np.stack([t, t]),cmap='Oranges')
@@ -91,18 +122,19 @@ for i_trial in range(0,no_trial):
 
     
     # followers
-    for ii in range(no_leader,fishes):
-        x = data[:, 4*ii]
-        y = data[:, 4*ii+1]
-        z = data[:, 4*ii+2]
-        ax1.scatter(x, y, c=t, s=5, cmap='Oranges', alpha=0.8)  # Use color based on time
 
     for ii in range(0,no_leader):
         x = data[:, 4*ii]
         y = data[:, 4*ii+1]
         z = data[:, 4*ii+2]
         ax1.scatter(x, y, c=t, s=5, cmap='Blues', alpha=1)  # Use color based on time
-
+        ax.scatter(x, y, c=t, s=8, cmap='Wistia', alpha=1)  # Use color based on time
+    for ii in range(no_leader,fishes):
+        x = data[:, 4*ii]
+        y = data[:, 4*ii+1]
+        z = data[:, 4*ii+2]
+        ax1.scatter(x, y, c=t, s=5, cmap='Oranges', alpha=0.8)  # Use color based on time
+        ax.scatter(x, y, c=t, s=5, cmap='Blues', alpha=0.8)  # Use color based on time
 
     ############################################
     # Leader states
@@ -122,6 +154,18 @@ for i_trial in range(0,no_trial):
         phi_rel = data[:, 4*ii+3] - phi0
         phi_rel[phi_rel < -2*np.pi] += 2*np.pi
         phi_rel[phi_rel >  2*np.pi] -= 2*np.pi
+
+        vel_i = data[:, 4*fishes+4*ii : 4*fishes+4*ii+4]
+        ax5.plot(t,vel_i)
+        ax5.legend(('vx','vy','vz','vtheta'))
+
+        speed_norm = np.linalg.norm(vel_i[:, :2], axis=1)
+
+        ax6.plot(t,speed_norm, label = 'norm x y ')
+        ax6.legend()
+
+        ax7.plot(t,speed_norm/120, label = 'norm (BL/s)')
+        ax7.legend()
 
         # if phi_rel < -2*np.pi:
         #     phi_rel += 2*np.pi
@@ -158,6 +202,14 @@ ax1.set_xlim([-arena[0]/2-100, arena[0]/2+100])
 ax1.set_ylim([-arena[0]/2-100, arena[0]/2+100])
 ax1.axis('off')
 
+
+ax.set_aspect('equal')
+# ax1.set_title('trajectory')
+ax.set(xlabel='$x_{global}$',ylabel='$y_{global}}$')
+ax.plot(arena[0]/2*np.cos(np.linspace(0, 2*np.pi, 500)),arena[0]/2*np.sin(np.linspace(0, 2*np.pi, 500)),color='gray')
+ax.set_xlim([-arena[0]/2-100, arena[0]/2+100])
+ax.set_ylim([-arena[0]/2-100, arena[0]/2+100])
+ax.axis('off')
 
 # ax2.grid(True)
 ax2.set_aspect('equal')
