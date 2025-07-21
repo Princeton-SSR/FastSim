@@ -43,7 +43,7 @@ class Environment():
     def log_to_file(self, filename):
         """Logs tracking data to file
         """
-        np.savetxt('./logfiles/{}_data.txt'.format(filename), self.tracking, fmt='%.2f', delimiter=',')
+        np.savetxt('./logfiles_LF/{}_data.txt'.format(filename), self.tracking, fmt='%.2f', delimiter=',')
 
     def init_tracking(self):
         """Initializes tracking
@@ -84,38 +84,66 @@ class Environment():
     def init_states(self):
         """Initializes fish positions and velocities
         """
-        # Restrict initial positions to arena size
-        self.pos[:,0] = np.clip(self.pos[:,0], 0, self.arena_size[0])
-        self.pos[:,1] = np.clip(self.pos[:,1], 0, self.arena_size[1])
-        self.pos[:,2] = np.clip(self.pos[:,2], 0, self.arena_size[2])
+        ## Restrict initial positions to arena size
+        # # square arena
+        # self.pos[:,0] = np.clip(self.pos[:,0], 0, self.arena_size[0])
+        # self.pos[:,1] = np.clip(self.pos[:,1], 0, self.arena_size[1])
+        # self.pos[:,2] = np.clip(self.pos[:,2], 0, self.arena_size[2])
+
+        # circular arena
+        r = np.linalg.norm(self.pos[:2])
+        self.pos[:,0] = self.pos[:,0]/r*np.clip(r, 0, self.arena_size[0]/2)
+        self.pos[:,1] = self.pos[:,1]/r*np.clip(r, 0, self.arena_size[0]/2)
+        self.pos[:,2] = np.clip(self.pos[:,2], 0, self.arena_size[2])        
 
         # Initial relative positions
-        a_ = np.reshape(self.pos, (1, self.no_robots*self.no_states))
-        a = np.tile(a_, (self.no_robots,1))
-        b = np.tile(self.pos, (1,self.no_robots))
-        self.rel_pos = a - b # [4*no_robots X no_robots]
+        a_ = np.reshape(self.pos, (1, self.no_robots*self.no_states)) # shape [1 X 4*no_robots]
+        a = np.tile(a_, (self.no_robots,1)) # repeat the pos n_robots times, a shape [no_robots X 4*no_robots]
+        b = np.tile(self.pos, (1,self.no_robots)) # shape [no_robots X 4*no_robots]
+        self.rel_pos = a - b # [4 X no_robots]
 
         # Initial distances
         self.dist = cdist(self.pos[:,:3], self.pos[:,:3], 'euclidean') # without phi; [no_robots X no_robots]
 
+        # print("--- Encironment/Init states ---")
+        # print("self.pos" , self.pos)
+        # print("self.pos shape" , np.shape(self.pos))
+        # print("a_" , a_)
+        # print('a_ shape', np.shape(a_))
+        # print("a" , a)
+        # print('a shape', np.shape(a))
+        # print("b" , b)
+        # print('b shape', np.shape(b))
+        # print("self.rel_pos" , self.rel_pos)
+        # print("self.rel_pos shape" , np.shape(self.rel_pos))
+        # print("self.dist" , self.dist)
+        # print("self.dist shape" , np.shape(self.dist))
+
     def update_states(self, source_id, pos, vel): # add noise
         """Updates a fish state and affected realtive positions and distances
         """
-        # Position and velocity
-        self.pos[source_id,0] = np.clip(pos[0], 0, self.arena_size[0])
-        self.pos[source_id,1] = np.clip(pos[1], 0, self.arena_size[1])
-        self.pos[source_id,2] = np.clip(pos[2], 0, self.arena_size[2])
-        self.pos[source_id,3] = pos[3]
-        self.vel[source_id,:] = vel
+        ## Position and velocity (confine within arena)
+        # self.pos[source_id,0] = np.clip(pos[0], 0, self.arena_size[0])
+        # self.pos[source_id,1] = np.clip(pos[1], 0, self.arena_size[1])
+        self.pos[source_id,2] = np.clip(pos[2], 0, self.arena_size[2]) # z
+        self.pos[source_id,3] = pos[3] # no change in phi
+        self.vel[source_id,:] = vel # no change in velocity 
+        # H.KO: change to confine in cylindrical arenas
+        r = np.linalg.norm(pos[:2])
+        self.pos[source_id,0] = pos[0]/r*np.clip(r, 0, self.arena_size[0]/2)
+        self.pos[source_id,1] = pos[1]/r*np.clip(r, 0, self.arena_size[0]/2)     
 
         # Relative positions
         pos_others = np.reshape(self.pos, (1,self.no_robots*self.no_states))
         pos_self = np.tile(self.pos[source_id,:], (1,self.no_robots))
         rel_pos = pos_others - pos_self
         self.rel_pos[source_id,:] = rel_pos # row
+
+
         rel_pos_ = np.reshape(rel_pos, (self.no_robots, self.no_states))
         self.rel_pos[:,source_id*self.no_states:source_id*self.no_states+self.no_states] = -rel_pos_ # columns
         
+
         # Relative distances
         dist = np.linalg.norm(rel_pos_[:,:3], axis=1) # without phi
         self.dist[source_id,:] = dist
@@ -130,11 +158,13 @@ class Environment():
             self.updates = 0
             self.update_tracking()
 
-    def get_robots(self, source_id, visual_noise=False):
+    def get_robots(self, source_id):
         """Provides visible neighbors and relative positions and distances to a fish
         """
         robots = set(range(self.no_robots)) # all robots
         robots.discard(source_id) # discard self
+
+        # robots = {0} # only the leaders have leds
 
         rel_pos = np.reshape(self.rel_pos[source_id], (self.no_robots, self.no_states))
 
@@ -144,8 +174,19 @@ class Environment():
 
         leds = self.calc_relative_leds(source_id, robots)
 
+        # print("--- Environment/get_robots ---")
+        # print("rel_pos \n", rel_pos)
+
+        # rel_pos[:,3] = rel_pos[:,3] % (2 * np.pi)
+
+        # print("after normalization rel_pos \n", rel_pos)
+
+
+
         if self.n_magnitude: # no overwrites of self.rel_pos and self.dist
             n_rel_pos, n_dist = self.visual_noise(source_id, rel_pos)
+
+            print("n_rel_pos", n_rel_pos)
             return (robots, n_rel_pos, n_dist, leds)
         return (robots, rel_pos, self.dist[source_id], leds)
 
@@ -233,8 +274,12 @@ class Environment():
     def visual_noise(self, source_id, rel_pos):
         """Adds visual noise
         """
+        # noise in x y z
         magnitudes = self.n_magnitude * np.array([self.dist[source_id]]).T
-        noise = magnitudes * (np.random.rand(self.no_robots, self.no_states) - 0.5) # zero-mean uniform noise
+        noise_1 = magnitudes * (np.random.rand(self.no_robots, self.no_states-1) - 0.5) # zero-mean uniform noise
+        # noise in head angle
+        noise_2 = self.n_magnitude * math.pi * (np.random.rand(self.no_robots, 1) - 0.5)
+        noise = np.hstack((noise_1, noise_2))
         n_rel_pos = rel_pos + noise
         n_dist = np.linalg.norm(n_rel_pos[:,:3], axis=1) # new dist without phi
 
