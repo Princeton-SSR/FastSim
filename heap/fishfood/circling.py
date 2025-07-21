@@ -5,6 +5,7 @@ import numpy as np
 import random
 import time
 
+Leader_initial = [2000,2000, 0, pi * 3/4]
 
 class Fish():
     """Bluebot instance

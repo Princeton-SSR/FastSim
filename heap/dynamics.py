@@ -32,6 +32,7 @@ class Dynamics():
         self.F_buoy = 0.010 # [N]
         self.vx_max = 0.160 # [m/s]
 
+
         # Initialize Control
         self.F_caud = 0 # [N]
         self.F_PR = 0 # [N]
@@ -51,6 +52,12 @@ class Dynamics():
         F_PR_max = 0.006 # [N]
         F_PL_max = 0.006 # [N]
         F_dors_max = 0.020 # [N]
+
+        #Di tuning
+        F_caud_max = 0.020/10 # [N]
+        F_PR_max = 0.006/10 # [N]
+        F_PL_max = 0.006/10 # [N]
+        # F_dors_max = 0.020 # [N]        
 
         self.F_caud = caudal * F_caud_max
         self.F_PR = pect_r * F_PR_max

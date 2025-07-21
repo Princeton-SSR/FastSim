@@ -139,12 +139,15 @@ class Fish():
 
         # Define your move here
         move = np.zeros((3,))
+
         magnitude = 1
 
         # Global to Robot Transformation
         phi = self.environment.pos[self.id,3]
         r_T_g = self.environment.rot_global_to_robot(phi)
         r_move_g = r_T_g @ move
+
+
 
         self.depth_ctrl_vision(r_move_g)
         self.home(r_move_g, magnitude)

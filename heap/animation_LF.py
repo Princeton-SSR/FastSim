@@ -19,6 +19,9 @@ import json
 import numpy as np
 import ipyvolume as ipv
 import matplotlib.cm as cm
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.animation as animation
 import sys
 
 
@@ -29,8 +32,8 @@ except:
     print('Provide prefix of data you want to animate in format yymmdd_hhmmss as command line argument, e.g.:\n >python animation.py 201005_111211')
     sys.exit()
 try:
-    data = np.loadtxt('./logfiles/{}_data.txt'.format(filename), delimiter=',')
-    with open('./logfiles/{}_meta.txt'.format(filename), 'r') as f:
+    data = np.loadtxt('./logfiles_LF/{}_data.txt'.format(filename), delimiter=',')
+    with open('./logfiles_LF/{}_meta.txt'.format(filename), 'r') as f:
         meta = json.loads(f.read())
 except:
     print('Data file with prefix {} does not exist.\nProvide prefix of data you want to animate in format yymmdd_hhmmss as command line argument, e.g.:\n >python animation.py 201005_111211'.format(filename))
@@ -65,7 +68,9 @@ for ii in range(1,fishes):
 v = np.sqrt(x**2 + y**2 + z**2)
 v -= v.min(); v /= v.max()
 colors = np.array([cm.Blues(k) for k in v])
-#colors[:, 0, :] = cm.Reds(0.5) # this fish is red
+
+# colors[:, 0, :] = cm.Reds(0.5) # this fish is red
+colors[:, 0, :] = cm.Wistia(0.3) # this fish is yellowish
 
 # Create Animation
 fig = ipv.figure()
@@ -77,6 +82,6 @@ ipv.style.use('dark')
 quiver = ipv.quiver(x, y, z, np.cos(phi), np.sin(phi), np.zeros((1,len(phi))),size=6, color=colors[:,:,:3])
 ipv.animation_control(quiver, interval=clock_rate)
 
-ipv.save('./animations/{}_animation.html'.format(filename))
+ipv.save('./animations_LF/{}_animation.html'.format(filename))
 
-print('BLUEANIMAT saved your animation in ./animations/{}_animation.html.\nOpen with your favorite browser, sit back and enjoy the extravaganza!'.format(filename))
+print('BLUEANIMAT saved your animation in ./animations_LF/{}_animation.html.\n Open with your favorite browser/player, sit back and enjoy the extravaganza!'.format(filename, filename))
