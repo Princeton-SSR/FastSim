@@ -120,7 +120,7 @@ def animate_frame(frame):
     
     # Set view angle (elevation, azimuth)
     # You can change these values to adjust the camera angle
-    ax.view_init(elev=60, azim= 20)  # elev: up/down angle, azim: rotation angle
+    ax.view_init(elev=20, azim= 130)  # elev: up/down angle, azim: rotation angle
     
     # Plot fish positions and orientations
     for fish in range(fishes):

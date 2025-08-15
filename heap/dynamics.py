@@ -127,5 +127,11 @@ class Dynamics():
         pos = np.concatenate((m_to_mm * g_P_r, np.array([phi])), axis=0)
         vel = np.concatenate((m_to_mm * g_Pdot_r, np.array([vphi])), axis=0)
 
+        # # Update Environment
+        # print("--DEBUGGING------ in dynamics.py, simulate_move()")
+        # print("source_id", source_id)
+        # print("pos", pos)
+        # print("vel", vel)
+
         return (pos, vel)
         

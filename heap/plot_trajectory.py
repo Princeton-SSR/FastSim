@@ -23,7 +23,7 @@ import pandas as pd
 
 # Read meta file
 filename = []
-# filename = '250709_180146'
+# filename = '250721_163249'
 
 if not filename:
     try:
@@ -55,41 +55,40 @@ y_offset = 400 # to offset ax2
 
 no_leader = 1
 no_trial = 1
-# figure setup
-# Set the font to be recognizable
-plt.rcParams['svg.fonttype'] = 'none'
 
+
+data = np.loadtxt('./logfiles_LF/{}_data.txt'.format(filename), delimiter=',')
+
+
+fig, ax = plt.subplots(1, 1, figsize=(10, 5))
 fig1, ax1s = plt.subplots(2, 4,constrained_layout = True,figsize=(15,6))
-# plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.2, hspace=0.2)
-# gs = ax1s[0,2].get_gridspec()
-# ax1s[0,2].remove()
-# ax1s[0,3].remove()
-# ax1s[0,2] = fig1.add_subplot(gs[0,-2:])
-# fig1.figsize=(10, 3)
-# fig2, ax2s = plt.subplots(1, 1)
-
 # assign axis
 ax1 = ax1s[0,0]
 ax2 = ax1s[0,1]
 ax3 = ax1s[0,2]
 ax4 = ax1s[0,3]
-# ax4 = ax2s
-
-# Build your secondary mirror axes:
-# fig2, (ax3, ax4) = plt.subplots(1, 2)
-# map1 = ax3.imshow(np.stack([t, t]),cmap='Oranges')
-# map2 = ax4.imshow(np.stack([t, t]),cmap='Blues')
-# ax3.axis('off')
-# ax4.axis('off')
-# fig1.colorbar(map1,values=t,ax=ax1)
-# fig1.colorbar(map2,values=t,ax=ax1)
-
-data = np.loadtxt('./logfiles_LF/{}_data.txt'.format(filename), delimiter=',')
-
-
 
 cmaps = ['Greys', 'Purples', 'Greens', 'Oranges', 'Reds',
                       'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu']
+
+# for ii in range(0, fishes):
+#     x = data[:, 4*ii]
+#     y = data[:, 4*ii+1]
+#     z = data[:, 4*ii+2]
+
+#     if ii == 0:
+#         cmaps.append('Blues')
+#         ax.scatter(x, y, c=t, s=5, cmap='Blues', alpha=1)  # Use color based on time
+
+#     else: 
+#         if ii > len(cmaps) - 1:
+#             cmaps.append(cmaps[ii % len(cmaps)])  # Cycle through colormaps if more fishes than colormaps
+#         ax.scatter(x, y, c=t, s=1, cmap=cmaps[ii], alpha=0.8)  # Use color based on time
+
+
+
+
+
 # followers
 for ii in range(no_leader,fishes):
     x = data[:, 4*ii]
@@ -100,6 +99,7 @@ for ii in range(no_leader,fishes):
     if ii > len(cmaps) - 1:
         cmaps.append(cmaps[ii % len(cmaps)])  # Cycle through colormaps if more fishes than colormaps
         
+    ax.scatter(x, y, c=t, s=1, cmap=cmaps[ii], alpha=0.8)  # Use color based on time
     ax1.scatter(x, y, c=t, s=1, cmap=cmaps[ii], alpha=0.8)  # Use color based on time
 
 
@@ -107,6 +107,7 @@ for ii in range(0,no_leader):
     x = data[:, 4*ii]
     y = data[:, 4*ii+1]
     z = data[:, 4*ii+2]
+    ax.scatter(x, y, c=t, s=5, cmap='Blues', alpha=1)  # Use color based on time
     ax1.scatter(x, y, c=t, s=5, cmap='Blues', alpha=1)  # Use color based on time
 
 
@@ -120,6 +121,13 @@ phi0 = data[:, 3]
 
 
 i_trial = 1
+
+# figure setup
+# Set the font to be recognizable
+plt.rcParams['svg.fonttype'] = 'none'
+
+
+
 
 # plot trajectories
 for ii in range(no_leader,fishes):
@@ -180,10 +188,17 @@ ax2.set_ylim([-set_limits, set_limits])
 
 # Customize grid, legend, etc. (optional)
 # ax1.grid(True)
+ax.set_aspect('equal')
+ax.plot(arena[0]/2*np.cos(np.linspace(0, 2*np.pi, 500)),arena[0]/2*np.sin(np.linspace(0, 2*np.pi, 500)),color='gray')
+# Hide only the rectangle frame
+for side in ['top', 'right']: #, 'bottom', 'left']:
+    ax.spines[side].set_visible(False)
+
 # Set aspect ratio to be equal
 ax1.set_aspect('equal')
 # ax1.set_title('trajectory')
 ax1.set(xlabel='$x_{global}$',ylabel='$y_{global}}$')
+
 ax1.plot(arena[0]/2*np.cos(np.linspace(0, 2*np.pi, 500)),arena[0]/2*np.sin(np.linspace(0, 2*np.pi, 500)),color='gray')
 ax1.set_xlim([-arena[0]/2-100, arena[0]/2+100])
 ax1.set_ylim([-arena[0]/2-100, arena[0]/2+100])
@@ -322,9 +337,12 @@ def plot_nearest_neighbor_distances(data, num_agents=3, show_plot=True, use_2d=F
        
        
         # Add horizontal line at 260 mm
+        body_length = 130  # Assuming body length is 130 mm
+        d = 1 * body_length
 
         for i in range(num_agents):
-            plt.axhline(y=260, color='r', linestyle='--', label='260 mm')
+            plt.axhline(y= d , color='r', linestyle='--', label='260 mm')
+            plt.axhline(y= d *np.sqrt(2), color='r', linestyle='--', label='260 sq(2) mm')
             break # only plot once
 
         plt.ylim(-100, 1000)  # Set y-axis limits from 0 to 1000
@@ -375,45 +393,72 @@ for ii in range(0,fishes):
     v = np.sqrt(vx**2 + vy**2 + vz**2)
 
 def plot_speed(data, num_agents, t):
-    """Plots the speed of each agent over time."""
-    fig, axs = plt.subplots(2, 2, figsize=(12, 8))
-    axs = axs.flatten()  # Flatten the 2x2 array of axes for easy iteration
+    """Plots position and velocity components of each agent over time in a 2x4 subplot."""
+    fig1, axs = plt.subplots(3, 4, figsize=(15, 6), constrained_layout=True)
 
     for ii in range(num_agents):
-        vx = data[:, 4*ii + 4]
-        vy = data[:, 4*ii + 5]
-        vz = data[:, 4*ii + 6]
+        # Extract position data
+        x = data[:, 4*ii]
+        y = data[:, 4*ii+1]
+        z = data[:, 4*ii+2]
+        phi = data[:, 4*ii+3]
+        
+        # Extract velocity data
+        vx = data[:, 4*num_agents + ii + 1]
+        vy = data[:, 4*num_agents + ii + 2]
+        vz = data[:, 4*num_agents + ii + 3]
+        # vphi = data[:, 4*ii + 7] # this is not used
         v = np.sqrt(vx**2 + vy**2 + vz**2)
 
-        axs[0].plot(t, vx, label=f'Agent {ii}')
-        axs[1].plot(t, vy, label=f'Agent {ii}')
-        axs[2].plot(t, vz, label=f'Agent {ii}')
-        axs[3].plot(t, v, label=f'Agent {ii}')
+        # Plotting
+        axs[0, 0].plot(t, x, label=f'Agent {ii}')
+        axs[0, 1].plot(t, y, label=f'Agent {ii}')
+        axs[0, 2].plot(t, z, label=f'Agent {ii}')
+        axs[0, 3].plot(t, phi, label=f'Agent {ii}')
 
-    axs[0].set_title('Vx over Time')
-    axs[1].set_title('Vy over Time')
-    axs[2].set_title('Vz over Time')
-    axs[3].set_title('Speed (V) over Time')
+        axs[1, 0].plot(t, vx, label=f'Agent {ii}')
+        axs[1, 1].plot(t, vy, label=f'Agent {ii}')
+        axs[1, 2].plot(t, vz, label=f'Agent {ii}')
+        axs[1, 3].plot(t, v, label=f'Agent {ii}')  # Speed
+        # axs[1, 3].plot(t, vphi, label=f'Agent {ii}') # velocity of phi is not available in data
 
-    for ax in axs:
-        ax.set_xlabel('Time (s)')
-        ax.set_ylabel('Velocity/Speed')
-        ax.legend()
-        ax.grid(True)
+        axs[2, 0].plot(t, vx/130, label=f'Agent {ii}')
+        axs[2, 1].plot(t, vy/130, label=f'Agent {ii}')
+        axs[2, 2].plot(t, vz/130, label=f'Agent {ii}')
+        axs[2, 3].plot(t, v/130, label=f'Agent {ii}')  # Speed
+        # axs[1, 3].plot(t, vphi, label=f'Agent {ii}') # velocity of phi is not available in data
 
-    plt.tight_layout()
+    # Titles and labels
+    axs[0, 0].set_title('X Position')
+    axs[0, 1].set_title('Y Position')
+    axs[0, 2].set_title('Z Position')
+    axs[0, 3].set_title('Orientation (phi)')
 
+    axs[1, 0].set_title('Velocity in X')
+    axs[1, 1].set_title('Velocity in Y')
+    axs[1, 2].set_title('Velocity in Z')
+    axs[1, 3].set_title('Speed (V)')
 
-    # plt.show()  # remove show here, so it can plot with other plots
+    ylabels = ['Position (mm)', 'Velocity (mm/s)', 'Velocity (BL/s)']
+    for i, ax_row in enumerate(axs):
+        for ax in ax_row:
+            ax.set_xlabel('Time (s)')
+            ax.set_ylabel(ylabels[i])
+            # ax.legend()
+            ax.grid(True)
+    axs[0, 0].legend(loc='upper right', fontsize='small')
+
+    # fig1.tight_layout() # use constrained_layout instead
+    # plt.show() # remove show here, so it can plot with other plots
 
 # plot_speed(data, fishes, t)
 
 # plot_inter_agent_distances(data, num_agents=fishes, show_plot=True, use_2d=False)
 plot_nearest_neighbor_distances(data, num_agents=fishes, show_plot=True, use_2d=False)
 
-plot_phi_data()
+# plot_phi_data()
 
-plot_speed(data, fishes, t)
+# plot_speed(data, fishes, t)
 
 plt.show()
    

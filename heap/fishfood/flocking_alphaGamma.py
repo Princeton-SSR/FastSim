@@ -4,7 +4,7 @@ Leader-Follower simulation
 Leader swim forward 
 Follower moves towards the leader, using rel_pos (not LEDs)
 
-
+commented out print statements
 """
 from math import *
 import numpy as np
@@ -15,7 +15,7 @@ from fishfood.flocking_helper.flock_fct import *
 import os
 import csv
 
-Leader_initial = [-00,-2000, 0, pi * 4/4]
+Leader_initial = [-00,-2000, 0, pi * 2/4]
 
 class Fish():
     """Bluebot instance
@@ -76,7 +76,7 @@ class Fish():
 
         return (center, magn)
 
-    def depth_ctrl_vision(self, r_move_g):
+    def depth_ctrl_vision(self, r_move_g, dorsal_freq=1):
         """Vision-like depth control
         
         Args:
@@ -87,7 +87,7 @@ class Fish():
         pitch = np.arctan2(r_move_g[2], sqrt(r_move_g[0]**2 + r_move_g[1]**2)) * 180 / pi
 
         if pitch > pitch_range:
-            self.dorsal = 1
+            self.dorsal = dorsal_freq
         elif pitch < -pitch_range:
             self.dorsal = 0
 
@@ -161,13 +161,14 @@ class Fish():
 
             self.caudal = leader_speed# a is from flock_fct.py, set the upper limit of phi_a function
 
-            self.pect_r = 0.01
-            ## leader turns by random choice
-            # choices = [[0, 0], [0, 0.3], [0.3, 0]]
-            # weights = [0.2, 0.4, 0.4]  # Higher weights for last two choices
-            # choice = np.random.choice(len(choices), p=weights)
-            # # print('leader move',choice, choices[choice])
-            # self.pect_l, self.pect_r = choices[choice]
+            # self.pect_r = 0.01
+            # leader turns by random choice
+            choices = [[0, 0], [0, 0.3], [0.3, 0]] # [straight, turn left, turn right]
+            weights = [0.2, 0.4, 0.4]  # Higher weights for last two choices
+            weights = [1, 0, 0]  # Higher weights for last two choices
+            choice = np.random.choice(len(choices), p=weights)
+            # print('leader move',choice, choices[choice])
+            self.pect_l, self.pect_r = choices[choice]
 
             self.depth_ctrl_psensor(1000,1) # target depth, dorsal freq
 
@@ -179,7 +180,7 @@ class Fish():
             masked_dist = dist.copy()
             masked_dist[self.id] = np.inf
 
-            d = 2 * self.body_length # lattice scale (distance between a-agents)
+            d = 1 * self.body_length # lattice scale (distance between a-agents)
             r = 5 * d # interaction range of a-agents
             neighbors = np.where(masked_dist < r)[0]
 
@@ -219,16 +220,16 @@ class Fish():
                 g_i += c1_a * gradient_term
                 c_i += c2_a * consensus_term
 
-                u_ij = c1_a * gradient_term + c2_a * consensus_term
+                # u_ij = c1_a * gradient_term + c2_a * consensus_term
 
-                u_i_alpha += u_ij
+                # u_i_alpha += u_ij
 
             if np.linalg.norm(g_i) > 0:
                 g_i = g_i / np.linalg.norm(g_i)
             if np.linalg.norm(c_i) > 0:
                 c_i = c_i / np.linalg.norm(c_i)
 
-            u_i_alpha = 0.5 * g_i + 0.5 * c_i
+            # u_i_alpha = 0.5 * g_i + 0.5 * c_i
 
      
             ## navigation term
@@ -237,11 +238,12 @@ class Fish():
             u_nav = u_nav / norm if norm != 0 else u_nav  
             # u_nav = 0  
 
-            u_i = 0.8 * g_i + 0.7 * c_i + 0.4 * u_nav # final move command
+            u_i = 1.3 * g_i + 0.4 * c_i + 0.4 * u_nav # final move command (optimized parameters)
             
             
             move = u_i # move direction command
-            magnitude = min(np.linalg.norm(u_i), leader_speed * 5)  # move magnitude, limit freq to 5 
+            magnitude = 1
+            # magnitude = min(np.linalg.norm(u_i), leader_speed * 10)  # move magnitude, limit freq to 5 
 
 
             ####### debugging printing ########
@@ -251,30 +253,30 @@ class Fish():
                 writer = csv.writer(file)
                 writer.writerow([self.id, phi_a_value])
 
-            print(" --------------------- in run/move ------------------------ ")
-            print("self.id", self.id)
+            # print(" --------------------- in run/move ------------------------ ")
+            # print("self.id", self.id)
             
-            print("* phi_a", phi_a_value)
-            print("distance to leader", np.linalg.norm(self.environment.pos[leader,:3] - self.environment.pos[self.id,:3]),"\n")
+            # print("* phi_a", phi_a_value)
+            # print("distance to leader", np.linalg.norm(self.environment.pos[leader,:3] - self.environment.pos[self.id,:3]),"\n")
 
-            print("* gradient_term", g_i, "magnitude", np.linalg.norm(g_i))
-            print("* consensus_term", c_i, "magnitude", np.linalg.norm(c_i))
+            # print("* gradient_term", g_i, "magnitude", np.linalg.norm(g_i))
+            # print("* consensus_term", c_i, "magnitude", np.linalg.norm(c_i))
 
 
-            print("*** u_i_alpha = gradient +  consensus", u_i_alpha, "magnitude of u_i_alpha:", np.linalg.norm(u_i_alpha))
+            # print("*** u_i_alpha = gradient +  consensus", u_i_alpha, "magnitude of u_i_alpha:", np.linalg.norm(u_i_alpha))
                     
-            print("u_nav", u_nav, "magnitude of u_nav:", np.linalg.norm(u_nav))
+            # print("u_nav", u_nav, "magnitude of u_nav:", np.linalg.norm(u_nav))
 
-            print('\n')
-            print("u_i", u_i)
+            # print('\n')
+            # print("u_i", u_i)
 
 
 
-            print("magnitude of u_i:", np.linalg.norm(u_i))
+            # print("magnitude of u_i:", np.linalg.norm(u_i))
 
-            print("move", move)
-            print("mangitude", magnitude, "limited to ", leader_speed * 5)
-            print(" --------------------- finish run/move ------------------------ ")
+            # print("move", move)
+            # print("magnitude", magnitude, "limited to ", leader_speed * 10)
+            # # print(" --------------------- finish run/move ------------------------ ")
      
 
             # Global to Robot Transformation

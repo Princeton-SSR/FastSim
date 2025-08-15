@@ -28,6 +28,9 @@ import sys
 import time
 import importlib
 import os
+
+random.seed(40)  # Set a seed for reproducibility
+
 from environment import Environment
 from dynamics import Dynamics
 from lib_heap import Heap
@@ -36,6 +39,7 @@ import csv
 import os
 
 test_filename = "/Users/di/Documents/GitHub/FastSim/heap/fishfood/flocking_helper/debug_test/phi_data.csv"
+
 
 # Check if test_filename exists, if so, delete it
 if os.path.exists(test_filename):
@@ -74,8 +78,8 @@ Fish = getattr(importlib.import_module('fishfood.' + experiment_file), 'Fish')
 
 # Experimental Parameters
 #TODO: change this back to 20 
-no_fish = 5
-simulation_time =  60 * 3 # [s]
+no_fish = 6
+simulation_time =  60 * 5 # [s]
 clock_freq = 2 # [Hz]
 clock_rate = 1/clock_freq
 
@@ -108,7 +112,7 @@ leader_initial = getattr(importlib.import_module('fishfood.' + experiment_file),
 # pos[:,:2] = initial_spread * (np.random.rand(no_fish, 2) - 0.5) + arena_center[:2] # x,y
 # pos[:,2] = 10 * np.random.rand(1, no_fish) # z, all fish at same noise-free depth results in LJ lock
 # pos[:,3] = 2*math.pi * (np.random.rand(1, no_fish) - 0.5) # phi
-initial_spread = 500 # radius
+initial_spread = 1500 # radius
 pos = np.zeros((no_fish, 4))
 vel = np.zeros((no_fish, 4))
 theta = np.random.rand(no_fish) * math.pi * 2 
@@ -188,4 +192,6 @@ print('Create corresponding animation by running >python animation_LF.py {}'.for
 print('#### GOODBYE AND SEE YOU SOON AGAIN ####')
 
 # Run agent plots right after the code
-os.system(f'python plot_trajectory_debugging.py '+filename)
+# os.system(f'python plot_trajectory.py '+filename)
+
+os.system(f'python plot_metrics.py '+filename)
