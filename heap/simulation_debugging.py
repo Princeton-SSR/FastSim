@@ -79,6 +79,7 @@ Fish = getattr(importlib.import_module('fishfood.' + experiment_file), 'Fish')
 # Experimental Parameters
 #TODO: change this back to 20 
 no_fish = 6
+# simulation_time =  1 # [s]
 simulation_time =  60 * 5 # [s]
 clock_freq = 2 # [Hz]
 clock_rate = 1/clock_freq

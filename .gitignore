@@ -1,8 +1,12 @@
 #git ignore files created when running code
 __pycache__/
 
+# git ignore archived files
+heap/fishfood/fishfood_archive
+
 #git ignore log files
 logfiles/
 animations/
 animations_LF/
 logfiles_LF/
+

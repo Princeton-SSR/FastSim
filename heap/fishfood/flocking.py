@@ -238,12 +238,18 @@ class Fish():
             u_nav = u_nav / norm if norm != 0 else u_nav  
             # u_nav = 0  
 
-            u_i = 0.5 * g_i + 0.5 * c_i + 0.1 * u_nav # final move command
+            ## gaol direction
+            u_goal = np.array([0, 1, 0]) # fix nav direction
+            
 
-            u_i = 0.5 * g_i + 0.0 * c_i + 0.5 * u_nav # final move command
+            u_i = 0.4 * g_i + 0.4 * c_i + 0.4 * u_nav # p + a + n
+            u_i = 0.5 * g_i + 0.5 * c_i + 0.0 * u_nav # p + a 
+            u_i = 0.5 * g_i + 0.0 * c_i + 0.5 * u_nav # p + n
+            u_i = 0.8 * g_i + 0.0 * c_i + 0.0 * u_nav + 0.3 * u_goal # p + g
             
             move = u_i # move direction command
-            magnitude = min(np.linalg.norm(u_i), leader_speed * 10)  # move magnitude, limit freq to 5 
+            mag_max = leader_speed * 20
+            magnitude = min(np.linalg.norm(u_i), mag_max)  # move magnitude, limit freq to 5 
 
 
             ####### debugging printing ########
@@ -272,7 +278,7 @@ class Fish():
             print("u_i", u_i)
 
             print("move", move)
-            print("magnitude", magnitude, "limited to ", leader_speed * 10)
+            print("magnitude", magnitude, "limited to (max)", mag_max)
             print(" --------------------- finish run/move ------------------------ ")
      
 
