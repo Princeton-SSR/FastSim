@@ -1,8 +1,10 @@
 """Simulates a Bluebot. Add behavioral code here.
 Leader-Follower simulation
-Leader stop/swim forward 
+Leader stop/swim in a circle
 follower follows on the right (set target on leader's right)
 (follower use only local LED info)
+
+Use tanh function to set speed based on distance to target
 
 Limited to 2 agents, 1 leader + 1 followers
 
@@ -24,6 +26,7 @@ U_LED_DX = 86 # [mm] leds x-distance on BlueBot
 U_LED_DZ = 86 # [mm] leds z-distance on BlueBot
 N_fish = 2
 EXPERIMENT_NAME = 'Follow on the inside, tanh'
+Leader_initial = [1000, 1200, 0, pi * 3/4]
 
 class Fish():
     """Bluebot instance

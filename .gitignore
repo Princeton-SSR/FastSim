@@ -4,3 +4,10 @@ __pycache__/
 #git ignore log files
 logfiles/
 animations/
+logfiles_LF/
+animations_LF/
+
+#git ignore archive files
+fishfood_archive/
+
+

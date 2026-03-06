@@ -23,7 +23,7 @@ import warnings
 U_LED_DX = 86 # [mm] leds x-distance on BlueBot
 U_LED_DZ = 86 # [mm] leds z-distance on BlueBot
 N_fish = 2
-N_follower = 2
+N_follower = 1
 Leader_initial = [2000, -1200, 0, pi * 3/4]
 Follower_initial = [2200, -551, 0, pi ]
 
@@ -434,7 +434,7 @@ class Fish():
         safe_distance = 100 # mm. compared to body length 150 mm
         approach_distance = 1000 # mm 1000 mm
         distance = 200 # 200 mm distance to maintain
-        angle = 120
+        angle = 180
 
         if self.id == 0: # leader
             # print("************at leader************")

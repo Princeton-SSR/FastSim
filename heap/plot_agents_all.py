@@ -20,10 +20,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 
-# filename = '240219_213513'
 # Read meta file
 
-# filename = '250129_094252'  #"F2S"
 filename = []
 # filename = '250129_121536'
 
@@ -34,6 +32,7 @@ if not filename:
     except:
         print('Provide prefix of data you want to animate in format yymmdd_hhmmss as command line argument, e.g.:\n >python plot_agents.py 240219_213513')
         sys.exit()
+        
 # read data
 try:
     data = np.loadtxt('./logfiles/{}_data.txt'.format(filename), delimiter=',')
@@ -62,29 +61,23 @@ y_offset = 400 # to offset ax2
 plt.rcParams['svg.fonttype'] = 'none'
 
 fig1, ax1s = plt.subplots(2, 4,constrained_layout = True,figsize=(10,6))
-# plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.2, hspace=0.2)
-# gs = ax1s[0,2].get_gridspec()
-# ax1s[0,2].remove()
-# ax1s[0,3].remove()
-# ax1s[0,2] = fig1.add_subplot(gs[0,-2:])
-# fig1.figsize=(10, 3)
-# fig2, ax2s = plt.subplots(1, 1)
+
 
 # assign axis
 ax1 = ax1s[0,0]
 ax2 = ax1s[0,1]
 ax3 = ax1s[0,2]
 ax4 = ax1s[0,3]
+
+ax5 = ax1s[1,0]
+ax6 = ax1s[1,1]
+ax7 = ax1s[1,2]
+ax8 = ax1s[1,3]
+
+ax3 = ax1s[1,3]
+ax8 = ax1s[0,2]
 # ax4 = ax2s
 
-# Build your secondary mirror axes:
-# fig2, (ax3, ax4) = plt.subplots(1, 2)
-# map1 = ax3.imshow(np.stack([t, t]),cmap='Oranges')
-# map2 = ax4.imshow(np.stack([t, t]),cmap='Blues')
-# ax3.axis('off')
-# ax4.axis('off')
-# fig1.colorbar(map1,values=t,ax=ax1)
-# fig1.colorbar(map2,values=t,ax=ax1)
 
 for i_trial in range(0,no_trial):
 
@@ -119,7 +112,7 @@ for i_trial in range(0,no_trial):
     phi0 = data[:, 3]
 
     # plot leader
-    ax2.arrow(-75,0-y_offset,150,0,linewidth = 1,head_width=80, fc='b',ec='b')
+    ax2.arrow(75,0-y_offset,-150,0,linewidth = 1,head_width=80, fc='b',ec='b')
 
     # plot trajectories
     for ii in range(no_leader,fishes):
@@ -148,11 +141,11 @@ for i_trial in range(0,no_trial):
         # ax4.plot(t,z_rel,c='b')
         # ax4.plot(t,phi_rel,c='black')
 
-        ax1s[1,0].plot(t,x_rel, label=f'Trial {i_trial}')
-        ax1s[1,1].plot(t,y_rel, label=f'Trial {i_trial}')
-        ax1s[1,2].plot(t,z_rel, label=f'Trial {i_trial}')
+        ax5.plot(t,x_rel, label=f'Trial {i_trial}')
+        ax6.plot(t,y_rel, label=f'Trial {i_trial}')
+        ax7.plot(t,z_rel, label=f'Trial {i_trial}')
 
-        ax1s[1,3].plot(t,bearing, label=f'Trial {i_trial}')
+        ax8.plot(t,bearing, label=f'Trial {i_trial}')
         ax4.plot(t,pitch, label=f'Trial {i_trial}')
 
 
@@ -184,9 +177,9 @@ ax2.set(xlabel='$x_{leader}  (mm)$',ylabel='$y_{leader}  (mm)$')
 ax2.set_xlim([-1500, 1500])
 ax2.set_ylim([-1500, 1500])
 ax2.set_yticks([-1000, 0, 1000])
-ax2.axis('off')
+# ax2.axis('off')
 
-ax3.set_xlim([0, 200])
+# ax3.set_xlim([0, 200])
 ax3.set_ylim([0, 2000])
 # ax3.set_yticks([0, 1000, 2000])
 # ax3.legend(('1','2','3','4','5','6'))
@@ -196,32 +189,25 @@ ax3.set(ylabel='distance (mm)')
 # Save image
 
 
-ax1s[1,0].legend()
-ax1s[1,0].set(xlabel='t (s)')
-ax1s[1,0].set(ylabel='x_rel (mm)')
-ax1s[1,1].legend()
-ax1s[1,1].set(xlabel='t (s)')
-ax1s[1,1].set(ylabel='y_rel (mm)')
-ax1s[1,2].legend()
-ax1s[1,2].set(xlabel='t (s)')
-ax1s[1,2].set(ylabel='z_rel (mm)')
-ax1s[1,3].legend()
-ax1s[1,3].set(xlabel='t (s)')
-ax1s[1,3].set(ylabel='bearing (degree)')
+ax5.legend()
+ax5.set(xlabel='t (s)')
+ax5.set(ylabel='x_rel (mm)')
+ax6.legend()
+ax6.set(xlabel='t (s)')
+ax6.set(ylabel='y_rel (mm)')
+ax7.legend()
+ax7.set(xlabel='t (s)')
+ax7.set(ylabel='z_rel (mm)')
+ax8.legend()
+ax8.set(xlabel='t (s)')
+ax8.set(ylabel='bearing (degree)')
 
 ax4.set(xlabel='t (s)')
 ax4.set(ylabel='pitch (degree)')
 
 
-# # remove axis to save vector file size
-# ax1.remove()
-# ax2.remove()
-# fig1.savefig('animations/{}_trajectory.svg'.format(filename),facecolor='white',transparent=False,dpi=500)  # vector file but it's huge
 
-
-# fig1.savefig('animations/{}_trajectory_zoomed.svg'.format(filename),facecolor='white',transparent=False,dpi=500)  # vector file but it's huge
-
-fig1.savefig('animations/{}_trajectory.png'.format(filename),facecolor='white',transparent=False,dpi=500)  # Replace with desired filename
+# fig1.savefig('animations/{}_trajectory.png'.format(filename),facecolor='white',transparent=False,dpi=500)  
 
 # Display plot (optional)
 plt.show()

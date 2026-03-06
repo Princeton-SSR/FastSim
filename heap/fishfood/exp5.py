@@ -4,7 +4,7 @@ Leader stop/swim forward
 follower follows on the right (set target on leader's right)
 (follower use only local LED info)
 
-Expand to more than 2 agents, 1 leader + N followers (debugging)
+Expand to more than 2 agents, 1 leader + N followers 
 
 Running instrucion:
 go to enviornment python 3.6
@@ -22,8 +22,12 @@ import warnings
 
 U_LED_DX = 86 # [mm] leds x-distance on BlueBot
 U_LED_DZ = 86 # [mm] leds z-distance on BlueBot
-N_fish = 7
-EXPERIMENT_NAME = 'Six followers next to a leader'
+
+EXPERIMENT_NAME = 'Six robots, 5 followers next to a leader'
+
+Simulation_time = 500 # [s]
+N_fish = 6
+Leader_initial = [0, -2200, 0, pi * 0/4]
 
 class Fish():
     """Bluebot instance
@@ -432,12 +436,12 @@ class Fish():
 
         if self.id == 0: # leader
             # print("************at leader************")
-            magnitude = 0.2
+            # magnitude = 0.1
 
             # self.stop()
-            # self.forward(magnitude)
+            # self.forward(0.1) # caudal
 
-            self.spin( 0.1, 0.1, True) # caudal, pect, cw
+            self.spin( 0.12, 0.05, True) # caudal, pect, cw
             self.depth_ctrl_psensor(1000,0.1) # target depth, dorsal freq
 
         elif leds.size != 0: # follower

@@ -247,6 +247,18 @@ class Environment():
         
         candidates = robots.copy()
         for robot in candidates:
+
+            # print(" ------ in enviornment/blind_spot, print robot and rel_pos ------")
+            # print("source robot:", source_id, "robot:", robot)
+            # print("rel_pos:", rel_pos[robot,:2]) 
+            # print("dot", np.dot(phi_xy, rel_pos[robot,:2])) 
+
+
+            # print("dot", np.dot(phi_xy, self.pos[robot,:2])) 
+
+            # print("dot", np.dot([1,0], rel_pos[robot,:2]))  
+            # print("################") 
+
             dot = np.dot(phi_xy, rel_pos[robot,:2])
             if dot < 0:
                 d_robot = np.linalg.norm(rel_pos[robot,:2])

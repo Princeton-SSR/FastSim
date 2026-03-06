@@ -441,7 +441,7 @@ class Fish():
             # self.forward(magnitude)
 
             self.spin(0.1, 0.1, True) # caudal, pect, cw
-            self.forward(0.1)
+            self.forward(0.08)
             self.depth_ctrl_psensor(250,0.1) # target depth, dorsal freq
 
         elif self.id == 1 and leds.size != 0: # follower and leader can be seen 

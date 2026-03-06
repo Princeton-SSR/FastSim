@@ -1,7 +1,7 @@
 """Simulates a Bluebot. Add behavioral code here.
 Leader-Follower simulation
-Leader stop/swim forward 
-follower follows on the right (set target on leader's right)
+Leader stop/swim in a circle
+follower follows on the right (set target on leader's left) (follow inside)
 (follower use only local LED info)
 
 Limited to 2 agents, 1 leader + 1 followers

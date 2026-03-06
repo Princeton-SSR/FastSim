@@ -20,28 +20,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 
-# filename = '250120_165728'
-# filename = '250120_132639' # inner, small circle
-# filename = '250120_132919' # inner, big circle
-# filename = '250120_133157' # outer circle
-# filename = '250128_152451' # diamond leader straight
-# filename = '250128_154220' # diamond leader curved
-
-filename = '250129_094252'  #"F2S"
-
-# filename = '250116_163001'
-# sim_data_0 = {
-#     ## zero percent of vision error
-#     "F1S": '250116_162912',
-#     "F2S": '250116_163001',
-#     "F3S": '250116_163027',
- 
-#     "F1B": '250116_162628',
-#     "F2B": '250116_161340',
-#     "F3B": '250116_162711',
-
-# }
-
+filename = []
 # Read meta file
 
 if not filename:
@@ -94,13 +73,13 @@ ax3 = ax1s[2]
 fig1, ax = plt.subplots(figsize=(3,3))
 
 
-fig2, ax2s = plt.subplots(1, 1)
-ax4 = ax2s
+# fig2, ax2s = plt.subplots(1, 1)
+# ax4 = ax2s
 
-fig3, ax3s = plt.subplots(1, 3)
-ax5 = ax3s[0]
-ax6 = ax3s[1]
-ax7 = ax3s[2]
+# fig3, ax3s = plt.subplots(1, 3)
+# ax5 = ax3s[0]
+# ax6 = ax3s[1]
+# ax7 = ax3s[2]
 # Build your secondary mirror axes:
 # fig2, (ax3, ax4) = plt.subplots(1, 2)
 # map1 = ax3.imshow(np.stack([t, t]),cmap='Oranges')
@@ -143,8 +122,9 @@ for i_trial in range(0,no_trial):
     z0 = data[:, 2]
     phi0 = data[:, 3]
 
-    # plot leader
-    ax2.arrow(-75,0-y_offset,150,0,linewidth = 1,head_width=80, fc='b',ec='b')
+    # plot leader ## ax.arrow(x, y, dx, dy, **kwargs)
+    body_length = 150 # mm
+    ax2.arrow(-body_length/2,0-y_offset,body_length,0,linewidth = 1,head_width=80, fc='b',ec='b')
 
     # plot trajectories
     for ii in range(no_leader,fishes):
@@ -156,16 +136,16 @@ for i_trial in range(0,no_trial):
         phi_rel[phi_rel >  2*np.pi] -= 2*np.pi
 
         vel_i = data[:, 4*fishes+4*ii : 4*fishes+4*ii+4]
-        ax5.plot(t,vel_i)
-        ax5.legend(('vx','vy','vz','vtheta'))
+        # ax5.plot(t,vel_i)
+        # ax5.legend(('vx','vy','vz','vtheta'))
 
-        speed_norm = np.linalg.norm(vel_i[:, :2], axis=1)
+        # speed_norm = np.linalg.norm(vel_i[:, :2], axis=1)
 
-        ax6.plot(t,speed_norm, label = 'norm x y ')
-        ax6.legend()
+        # ax6.plot(t,speed_norm, label = 'norm x y ')
+        # ax6.legend()
 
-        ax7.plot(t,speed_norm/120, label = 'norm (BL/s)')
-        ax7.legend()
+        # ax7.plot(t,speed_norm/120, label = 'norm (BL/s)')
+        # ax7.legend()
 
         # if phi_rel < -2*np.pi:
         #     phi_rel += 2*np.pi
@@ -177,11 +157,11 @@ for i_trial in range(0,no_trial):
         # plot relative position
         ax2.scatter(x_rel, y_rel-y_offset, c=t, s=5, cmap='Oranges', alpha=0.8)  # Use color based on time
 
-        # plot time series
-        ax4.plot(t,x_rel,c='red')
-        ax4.plot(t,y_rel,c='g')
-        ax4.plot(t,z_rel,c='b')
-        ax4.plot(t,phi_rel,c='black')
+        # # plot time series
+        # ax4.plot(t,x_rel,c='red')
+        # ax4.plot(t,y_rel,c='g')
+        # ax4.plot(t,z_rel,c='b')
+        # ax4.plot(t,phi_rel,c='black')
 
         # plot distance, don't plot more than 10 
         if i_trial < 10:
@@ -211,30 +191,30 @@ ax.set_xlim([-arena[0]/2-100, arena[0]/2+100])
 ax.set_ylim([-arena[0]/2-100, arena[0]/2+100])
 ax.axis('off')
 
-# ax2.grid(True)
-ax2.set_aspect('equal')
-# ax2.set_title('relative trajectory')
-ax2.set(xlabel='$x_{leader}  (mm)$',ylabel='$y_{leader}  (mm)$')
-ax2.set_xlim([-1500, 1500])
-ax2.set_ylim([-1500, 1500])
-ax2.set_yticks([-1000, 0, 1000])
-ax2.axis('off')
+# # ax2.grid(True)
+# ax2.set_aspect('equal')
+# # ax2.set_title('relative trajectory')
+# ax2.set(xlabel='$x_{leader}  (mm)$',ylabel='$y_{leader}  (mm)$')
+# ax2.set_xlim([-1500, 1500])
+# ax2.set_ylim([-1500, 1500])
+# ax2.set_yticks([-1000, 0, 1000])
+# ax2.axis('off')
 
-ax3.set_xlim([0, 500])
-ax3.set_ylim([0, 2500])
-# ax3.set_yticks([0, 1000, 2000])
+# ax3.set_xlim([0, 500])
+# ax3.set_ylim([0, 2500])
+# # ax3.set_yticks([0, 1000, 2000])
 
 
-ax4.legend(('x','y','z','$\phi$'),loc='upper right')
-ax4.set(xlabel='t')
-ax4.set_title('relative states')
+# ax4.legend(('x','y','z','$\phi$'),loc='upper right')
+# ax4.set(xlabel='t')
+# ax4.set_title('relative states')
 
-# ax3.legend(('1','2','3','4','5','6'))
-ax3.set(xlabel='t (s)')
-ax3.set(ylabel='distance (mm)')
-# ax3.grid('on')
-# Save image
-fig1.savefig('animations/{}_trajectory.png'.format(filename),facecolor='white',transparent=False,dpi=500)  # Replace with desired filename
+# # ax3.legend(('1','2','3','4','5','6'))
+# ax3.set(xlabel='t (s)')
+# ax3.set(ylabel='distance (mm)')
+# # ax3.grid('on')
+# # Save image
+# fig1.savefig('animations/{}_trajectory.png'.format(filename),facecolor='white',transparent=False,dpi=500)  # Replace with desired filename
 
 
 # # remove axis to save vector file size
