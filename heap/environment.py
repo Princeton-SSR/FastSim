@@ -171,47 +171,21 @@ class Environment():
 
         self.visual_range(source_id, robots)
         self.blind_spot(source_id, robots, rel_pos)
+        # print("\n")
+        # print("in environment/get_robots, source_id", source_id, "visible robots after blind_spot checks", robots)
         self.occlusions(source_id, robots, rel_pos)
+        # print("in environment/get_robots, source_id", source_id, "visible robots after occlusion checks ", robots)
+        # print("\n")
 
-        # print('#################')
-        # print(robots)
+
         leds = self.calc_relative_leds(source_id, robots)
-
-        # print("in move, leds\n",leds)
-        # print(source_id)
-        # print(robots)
 
         abs_leds = self.leds_pos
 
         if self.n_magnitude: # no overwrites of self.rel_pos and self.dist
-            # print(' ')
-            # print("++++++++++ in enviroment/get robots/ before noise+++++++++++")
-            # print("self.rel_pos is \n", self.rel_pos.shape)
-            # print(self.rel_pos)
-            # print("no noise dist is ", np.linalg.norm(self.rel_pos[:,:3], axis = 1))
-
             n_rel_pos, n_dist = self.visual_noise(source_id, rel_pos)
-
-            # print("++++++++++ in enviroment/get robots/ after noise+++++++++++")
-            # # print("self.rel_pos is \n", self.rel_pos.shape)
-            # # print(self.rel_pos)
-
-            # print("n_rel_pos (noise added to relative position)", n_rel_pos.shape)
-            # print(n_rel_pos)
-            # print("n_dist (noise added to relative position)", n_dist.shape)
-            # print(n_dist)
-            # # print("leds", leds.shape)
-            # # print(leds)
-
-            # # print("+++++++++++++++++++++")
-
             return (robots, n_rel_pos, n_dist, leds, abs_leds)
         
-        # print("++++++++++ in enviroment/get robots+++++++++++")
-        # print("self.rel_pos")
-        # print(self.rel_pos)
-        # print("+++++++++++++++++++++")
-
         return (robots, rel_pos, self.dist[source_id], leds, abs_leds)
 
     def visual_range(self, source_id, robots):
@@ -248,22 +222,14 @@ class Environment():
         candidates = robots.copy()
         for robot in candidates:
 
-            # print(" ------ in enviornment/blind_spot, print robot and rel_pos ------")
-            # print("source robot:", source_id, "robot:", robot)
-            # print("rel_pos:", rel_pos[robot,:2]) 
-            # print("dot", np.dot(phi_xy, rel_pos[robot,:2])) 
-
-
-            # print("dot", np.dot(phi_xy, self.pos[robot,:2])) 
-
-            # print("dot", np.dot([1,0], rel_pos[robot,:2]))  
-            # print("################") 
+            # print("rel_pos for source id and robot", source_id, robot, ":", rel_pos[robot,:2])
 
             dot = np.dot(phi_xy, rel_pos[robot,:2])
             if dot < 0:
+                # print(" ------ in enviornment/blind_spot--------", "robot ", robot, " is behind, dot product is ", dot)
                 d_robot = np.linalg.norm(rel_pos[robot,:2])
 
-                angle = abs(math.acos(dot / (mag_phi * d_robot))) - math.pi / 2 # cos(a-b) = ca*cb+sa*sb = sa
+                angle = abs(math.acos(dot / (mag_phi * d_robot))) - math.pi / 2 # cos(a-b) = ca*cb+sa*sb = sa. # a . b = |a||b|cos(theta) => theta = acos(a.b/|a||b|)
 
                 if  math.cos(angle) * d_robot < r_blockage:
                     robots.remove(robot)
@@ -271,12 +237,11 @@ class Environment():
     def occlusions(self, source_id, robots, rel_pos):
         """Omits invisible fishes occluded by others
         """
-
-
         rel_dist = self.dist[source_id]
         id_by_dist = np.argsort(rel_dist)
 
         n_valid = []
+
         for robot in id_by_dist[1:]:
             if not robot in robots:
                 continue
@@ -291,13 +256,16 @@ class Environment():
                 coord_verified = rel_pos[verified,:3]
 
                 theta_min = math.atan(self.r_sphere / d_verified)
-                # TODO: double check this. I added this line because occassionaly the value of temp is 1.0000000000000002, which excedes the domain of acos of [-1,1].
+                theta = abs(math.acos(np.dot(coord_robot, coord_verified) / (d_robot * d_verified)))
+                # Jack
+                #  TODO: double check this. I added this line because occassionaly the value of temp is 1.0000000000000002, which excedes the domain of acos of [-1,1].
                 # I think this is OK, but might cause an issue down the line
                 temp = np.dot(coord_robot, coord_verified) / (d_robot * d_verified)
                 if(temp > 1.):
                     # print(temp)
                     temp = 1
                 theta = abs(math.acos(temp))
+                # Jack
 
                 if theta < theta_min:
                     occluded = True
@@ -308,6 +276,8 @@ class Environment():
 
             if not occluded:
                 n_valid.append(robot)
+
+            # print("in environment/occlusions, source_id", source_id, "robot", robot, "not occluded robots", n_valid)
 
     def visual_noise(self, source_id, rel_pos):
         """Adds visual noise

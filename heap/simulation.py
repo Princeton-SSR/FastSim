@@ -79,7 +79,7 @@ filename = time.strftime("%y%m%d_%H%M%S") # date_time
 v_range=2500 # visual range, [mm] # 1 to 2 m
 w_blindspot=50 # width of blindspot, [mm]
 # w_blindspot=3141 # TODO: figure out mapping mm to degrees
-r_sphere=10 # radius of blocking sphere for occlusion, [mm]
+r_sphere=20 # radius of blocking sphere for occlusion, [mm]
 n_magnitude=0 # visual noise magnitude, [% of distance]
 fish_specs = (v_range, w_blindspot, r_sphere, n_magnitude)
 
@@ -197,5 +197,5 @@ for i_trial in range(no_trial):
     # print('| Duration: {} sec\n -'.format(round(time.time()-t_start)))
 
 # Run agent plots right after the code
-# os.system(f'python plot_agents.py '+filename)
-os.system(f'python plot_agents_all.py '+filename)
+os.system(f'python plot_agents.py '+filename)
+# os.system(f'python plot_agents_all.py '+filename)

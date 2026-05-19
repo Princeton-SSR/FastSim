@@ -23,7 +23,7 @@ import warnings
 U_LED_DX = 86 # [mm] leds x-distance on BlueBot
 U_LED_DZ = 86 # [mm] leds z-distance on BlueBot
 N_fish = 8
-Simulation_time = 500 # [s]
+Simulation_time = 150 # [s]
 method_zone = True
 EXPERIMENT_NAME = 'Follow with zone method'
 
@@ -43,9 +43,9 @@ combinations = np.array([
     [180, 200],
 
 
-    [150, 300],
+    [150, 500],
     [-150, 300],
-    [180, 300],
+    # [180, 300],
 
     # [-90, 300],
     # [90, 300],
@@ -482,7 +482,7 @@ class Fish():
             # self.forward(magnitude)
 
             self.spin(0.2, 0.08, True) # caudal, pect, cw
-            # self.forward(0.05)
+            # self.forward(0.1)
             self.depth_ctrl_psensor(250,0.1) # target depth, dorsal freq
 
         # elif self.id == 1 and leds.size != 0: # follower and leader can be seen 

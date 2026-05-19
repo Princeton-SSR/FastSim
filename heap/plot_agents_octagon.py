@@ -15,14 +15,16 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+import os
 
-# Get filename from command line argument
-try:
-    filename = sys.argv[1]
-except:
-    print('Provide prefix of data you want to plot in format yymmdd_hhmmss as command line argument, e.g.:\n >python plot_agents_clean.py 240219_213513')
-    sys.exit()
+# # Get filename from command line argument
+# try:
+#     filename = sys.argv[1]
+# except:
+#     print('Provide prefix of data you want to plot in format yymmdd_hhmmss as command line argument, e.g.:\n >python plot_agents_clean.py 240219_213513')
+#     sys.exit()
 
+filename = '260317_170443'
 # Read data
 try:
     data = np.loadtxt('./logfiles/{}_data.txt'.format(filename), delimiter=',')
@@ -62,19 +64,21 @@ for i_trial in range(no_trial):
     # Read trial data
     data = np.loadtxt('./logfiles/{}_{}_data.txt'.format(filename, i_trial), delimiter=',')
 
-    # Plot leaders
-    for ii in range(no_leader):
-        x = data[:, 4*ii]
-        y = data[:, 4*ii+1]
-        z = data[:, 4*ii+2]
-        ax1.scatter(x, y, c=t, s=5, cmap='Blues', alpha=1)
+
     
     # Plot followers
     for ii in range(no_leader, fishes):
         x = data[:, 4*ii]
         y = data[:, 4*ii+1]
         z = data[:, 4*ii+2]
-        ax1.scatter(x, y, c=t, s=5, cmap='Oranges', alpha=0.8)
+        ax1.scatter(x, y, c=t, s=5, cmap='Blues', alpha=0.8)
+
+    # Plot leaders
+    for ii in range(no_leader):
+        x = data[:, 4*ii]
+        y = data[:, 4*ii+1]
+        z = data[:, 4*ii+2]
+        ax1.scatter(x, y, c=t, s=5, cmap='Oranges', alpha=1)
 
     # Extract leader states
     x0 = data[:, 0]
@@ -83,8 +87,8 @@ for i_trial in range(no_trial):
     phi0 = data[:, 3]
 
     # Draw leader fish on relative trajectory plot
-    body_length = 150  # mm
-    ax2.arrow(-body_length/2, 0-y_offset, -body_length, 0, linewidth=1, head_width=80, fc='b', ec='b')
+    body_length = 130  # mm
+    ax2.arrow(+0.5, 0-y_offset/body_length, -1, 0, linewidth=1, head_width=80/body_length, fc='orange', ec='orange')
 
     # Plot relative trajectories for each follower
     for ii in range(no_leader, fishes):
@@ -108,14 +112,14 @@ for i_trial in range(no_trial):
         pitch = np.arctan2(z_rel, np.sqrt(y_rel**2 + x_rel**2)) * 180 / np.pi
 
         # Plot relative position trajectory
-        ax2.scatter(x_rel, y_rel-y_offset, c=t, s=5, cmap='Oranges', alpha=0.8)
-        ax2.text(x_rel[0], y_rel[0]-y_offset, str(ii), fontsize=12, color='black')
+        ax2.scatter(x_rel/body_length, (y_rel-y_offset)/body_length, c=t, s=5, cmap='Blues', alpha=0.8)
+        # ax2.text(x_rel[0]/body_length, (y_rel[0]-y_offset)/body_length, str(ii), fontsize=12, color='black')
         ax2.set_aspect('equal')
 
-        # Draw final orientation arrow
-        dx = body_length * np.cos(phi_rel[-1])
-        dy = body_length * np.sin(phi_rel[-1])
-        ax2.arrow(x_rel[-1], y_rel[-1]-y_offset, -dx, -dy, head_width=30, head_length=20, fc='orange', ec='orange')
+        # # Draw final orientation arrow
+        # dx = np.cos(phi_rel[-1])
+        # dy = np.sin(phi_rel[-1])
+        # ax2.arrow(x_rel[-1]/body_length, (y_rel[-1]-y_offset)/body_length, -dx, -dy, head_width=30/body_length, head_length=20/body_length, fc='orange', ec='orange')
 
         # Plot bearing and pitch over time
         ax4.plot(t, bearing, label=f'Follower {ii}')
@@ -140,21 +144,39 @@ ax1.axis('off')
 
 # Configure plot 2: Relative trajectory
 ax2.set_aspect('equal')
-ax2.set(xlabel='$x$ (mm)', ylabel='$y$ (mm)')
+ax2.set(xlabel='$x$ (BL)', ylabel='$y$ (BL)')
+
+angles = [60, -60, 90, -90, 120, -120, 180]
+polar_length = 200/body_length
+ax2.scatter(0,0, c='orange', s=20, zorder=5)  # Leader position
+for angle in angles:
+    x_point = polar_length * np.cos(np.radians(angle))
+    y_point = polar_length * np.sin(np.radians(angle))
+    ax2.scatter(-x_point, y_point - y_offset, c='red', s=5, zorder=5)
+ax2.set_title('Followers Relative Position', fontsize=14)
 
 # Configure plot 3: Distance over time
-ax3.set(xlabel='t (s)', ylabel='distance (mm)')
+ax3.set(xlabel='Time (s)')
+ax3.set_title('Distance (mm)', fontsize=14)
 ax3.set_ylim([0, 2000])
-# ax3.legend()
+ax3.legend()
 
 # Configure plot 4: Bearing
 # ax4.legend()
-ax4.set(xlabel='t (s)', ylabel='bearing (degree)')
+ax4.set(xlabel='Time (s)')
+ax4.set_title('Bearing (degree)', fontsize=14)
 
 # Configure plot 5: Pitch
 # ax5.legend()
-ax5.set(xlabel='t (s)', ylabel='pitch (degree)')
-
+ax5.set(xlabel='Time (s)')
+ax5.set_title('Pitch (degree)', fontsize=14)
 # Display plots
 plt.show()
    
+
+# Check if logfigs folder exists, create if not
+if not os.path.exists('./logfigs'):
+    os.makedirs('./logfigs')
+
+fig1.savefig('./logfigs/{}_plot.png'.format(filename), dpi=300, bbox_inches='tight', transparent=True)
+fig1.savefig('./logfigs/{}_plot.svg'.format(filename), bbox_inches='tight', transparent=True)
