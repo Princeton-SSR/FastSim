@@ -40,7 +40,7 @@ follower_approach = 0.8
 follower_following_a, follower_following_b = 0.1, 0.2
 
 ## same plane, sapcing 200
-# safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, 180, 0 # F1S
+safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, 180, 0 # F1S
 # safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, -120, 0 # F2S
 # safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, 90, 0 # F3S trail
 
@@ -49,17 +49,18 @@ follower_following_a, follower_following_b = 0.1, 0.2
 # safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, -120,-40 # F2B
 # safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, 90,-40 # F3B
 
-## different plant, sapcing 200
+# different plant, sapcing 200
 # safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 140, 180, -40 # F1B
 # safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 140, -120,-40 # F2B
 # safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 140, 90,-40 # F3B
 
-# different plant, sapcing 200
-safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 140, 180, -40 # F1B
-follower_following_a, follower_following_b = 0.1, 0.2
-Leader_initial = [2000, -1000, 0, pi * 3/4]
+# tune speed
+# safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 140, 180, -40 # F1B
+# follower_following_a, follower_following_b = 0.1, 0.2
+Leader_initial = [2000, -2000, 0, pi * 3/4]
 
 # Leader_initial = [2000, -1000, 0, pi * 3/4]
+Initial_spread = 500 # radius
 
 class Fish():
     """Bluebot instance
