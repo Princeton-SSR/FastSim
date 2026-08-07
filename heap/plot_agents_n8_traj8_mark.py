@@ -14,17 +14,19 @@ Attributes:
 import json
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.signal import savgol_filter
 import sys
 import os
 
-# Get filename from command line argument
-try:
-    filename = sys.argv[1]
-except:
-    print('Provide prefix of data you want to plot in format yymmdd_hhmmss as command line argument, e.g.:\n >python plot_agents_clean.py 240219_213513')
-    sys.exit()
+# # Get filename from command line argument
+# try:
+#     filename = sys.argv[1]
+# except:
+#     print('Provide prefix of data you want to plot in format yymmdd_hhmmss as command line argument, e.g.:\n >python plot_agents_clean.py 240219_213513')
+#     sys.exit()
 
-# filename = '260317_170443'
+filename = '260806_140343'
+filename = '260806_145630'
 # Read data
 try:
     data = np.loadtxt('./logfiles/{}_data.txt'.format(filename), delimiter=',')
@@ -85,6 +87,49 @@ for i_trial in range(no_trial):
     y0 = data[:, 1]
     z0 = data[:, 2]
     phi0 = data[:, 3]
+
+    # Find inflection points of the leader's figure-8 (where path curvature changes
+    # sign, i.e. where the leader crosses through the center of the "8"). Smooth
+    # the path first so fin-actuation jitter doesn't create spurious sign flips.
+    window = min(31, timesteps - 1 + (timesteps % 2))
+    if window % 2 == 0:
+        window -= 1
+    window = max(window, 5)
+    x0_smooth = savgol_filter(x0, window, 3)
+    y0_smooth = savgol_filter(y0, window, 3)
+
+    vx0 = np.gradient(x0_smooth, t)
+    vy0 = np.gradient(y0_smooth, t)
+    ax0 = np.gradient(vx0, t)
+    ay0 = np.gradient(vy0, t)
+
+    speed_sq = vx0**2 + vy0**2
+    curvature = np.divide(vx0*ay0 - vy0*ax0, speed_sq**1.5,
+                           out=np.zeros_like(speed_sq), where=speed_sq > 1e-6)
+
+    # The figure-8 only truly changes curvature sign where it crosses through its own
+    # center; away from there, bang-bang fin actuation makes the *realized* curvature
+    # jitter in sign too (e.g. overshoot at the outer tips of each lobe), which is not
+    # a real inflection of the "8" shape. Gate sign-change detection to a core region
+    # around the path's centroid so only the true crossings are picked up.
+    center_xy = np.array([np.mean(x0), np.mean(y0)])
+    dist_center = np.hypot(x0 - center_xy[0], y0 - center_xy[1])
+    near_center = dist_center < 0.25 * np.max(dist_center)
+
+    sign_change = np.where((np.diff(np.sign(curvature)) != 0) & near_center[:-1] & near_center[1:])[0]
+
+    # Each crossing still produces a short burst of sign flips rather than one clean
+    # flip. Chain-merge sign changes within `min_gap` of their neighbor into a single
+    # group, then report the group's median index as that crossing's inflection point.
+    min_gap = int(10.0 * clock_freq)  # samples; 10 s, well under the ~half-period between crossings
+    groups = []
+    for idx in sign_change:
+        if groups and (idx - groups[-1][-1]) <= min_gap:
+            groups[-1].append(idx)
+        else:
+            groups.append([idx])
+    inflection_idx = [int(np.median(g)) for g in groups]
+    inflection_t = t[inflection_idx]
 
     # Draw leader fish on relative trajectory plot
     body_length = 130  # mm
@@ -159,7 +204,13 @@ ax2.set_title('Followers Relative Position', fontsize=14)
 ax3.set(xlabel='Time (s)')
 ax3.set_title('Distance (mm)', fontsize=14)
 ax3.set_ylim([0, 2000])
-# ax3.legend()
+
+# Mark leader trajectory-8 inflection points (curvature sign flips)
+for k, it in enumerate(inflection_t):
+    ax3.axvline(it, color='k', linestyle='--', alpha=0.5, linewidth=1,
+                label='Leader inflection' if k == 0 else None)
+
+ax3.legend()
 
 # Configure plot 4: Bearing
 # ax4.legend()

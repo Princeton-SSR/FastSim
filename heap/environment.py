@@ -24,6 +24,7 @@ class Environment():
         self.w_blindspot = fish_specs[1] # width of blindspot, [mm]
         self.r_sphere = fish_specs[2] # radius of blocking sphere for occlusion, [mm]
         self.n_magnitude = fish_specs[3] # visual noise magnitude, [% of distance]
+        print("in env, noise is", self.n_magnitude)
         self.arena_size = arena # x, y, z
         
         # Parameters
@@ -160,7 +161,7 @@ class Environment():
 
 
 
-    def get_robots(self, source_id, visual_noise=False):
+    def get_robots(self, source_id, visual_noise=True):
         """Provides visible neighbors and relative positions and distances to a fish
         """
         robots = set(range(self.no_robots)) # all robots
@@ -182,10 +183,10 @@ class Environment():
 
         abs_leds = self.leds_pos
 
-        if self.n_magnitude: # no overwrites of self.rel_pos and self.dist
+        if self.n_magnitude: # no overwrites of self.rel_pos and self.dist; leds noise is baked in by calc_relative_leds
             n_rel_pos, n_dist = self.visual_noise(source_id, rel_pos)
             return (robots, n_rel_pos, n_dist, leds, abs_leds)
-        
+
         return (robots, rel_pos, self.dist[source_id], leds, abs_leds)
 
     def visual_range(self, source_id, robots):
@@ -292,6 +293,22 @@ class Environment():
         n_dist = np.linalg.norm(n_rel_pos[:,:3], axis=1) # new dist without phi
 
         return (n_rel_pos, n_dist)
+
+    def visual_noise_led(self, relative_coordinates):
+        """Adds visual noise to a single led's relative xyz coordinates (robot frame, mm scale)
+
+        Must be called before the coordinates are normalized to a pqr bearing
+        vector: noise is scaled by the led's own (mm-scale) distance, same
+        "% of distance" model as visual_noise(), so the resulting angular error
+        stays roughly constant regardless of range. Adding this noise after
+        normalization (when the vector is already unit length) would make the
+        noise magnitude dwarf the signal.
+        """
+        dist = np.linalg.norm(relative_coordinates)
+        magnitude = self.n_magnitude * dist
+        noise = magnitude * (np.random.rand(3, 1) - 0.5)
+
+        return relative_coordinates + noise
 
     def see_circlers(self, source_id, robots, rel_pos, sensing_angle):
         '''For circle formation
@@ -423,10 +440,12 @@ class Environment():
         for led in leds_list:
             relative_coordinates = R @ ((led - my_pos)[:, np.newaxis])
 
+            if self.n_magnitude:
+                relative_coordinates = self.visual_noise_led(relative_coordinates)
 
             # tmp = np.append(tmp, relative_coordinates, axis=1)
             relative_coordinates /= np.linalg.norm(relative_coordinates) # normalize from xyz to pqr
-            
+
             all_blobs = np.append(all_blobs, relative_coordinates, axis=1)
 
 

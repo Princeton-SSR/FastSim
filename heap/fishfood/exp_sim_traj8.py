@@ -1,9 +1,8 @@
 """Simulates a Bluebot. Add behavioral code here.
 Leader-Follower simulation
-Leader moves in circle
-(follower use only local LED info)
+Leader move in an "8" shape trajectory, followers follow the leader with a certain distance and angle.
 
-Limited to 2 agents, 1 leader + 1 followers
+Agents N, id 0 is the leader
 
 Running instrucion:
 go to enviornment python 3.x
@@ -21,15 +20,38 @@ import warnings
 
 U_LED_DX = 86 # [mm] leds x-distance on BlueBot
 U_LED_DZ = 86 # [mm] leds z-distance on BlueBot
-N_fish = 8
-Simulation_time = 150 # [s]
+N_fish = 22
+Simulation_time = 350 # [s]
 method_zone = True
 EXPERIMENT_NAME = 'Follow with zone method'
 
-Leader_initial = [1000, -2800, 0, pi * 0/4]
+Leader_initial = [0, -0, 0, pi * 0/4]
+# distance = 200 # 200 mm distance to maintain
+# angle = -120
 ## Assign IDs, angles, and distances for each follower fish
 assign_id = np.arange(1,N_fish)
 # Define pairs of (angle, distance) directly
+
+# # followers setting for n=8
+# combinations = np.array([
+#     [60, 200],
+#     [-60, 200],
+#     [90, 200],
+#     [-90, 200],
+#     [120, 200],
+#     [-120, 200],
+#     [180, 200],
+
+
+#     [150, 500],
+#     [-150, 300],
+#     # [180, 300],
+
+#     # [-90, 300],
+#     # [90, 300],
+# ])
+
+# followers' setting for n=22
 combinations = np.array([
     [60, 200, 0],
     [-60, 200, 0],
@@ -63,12 +85,23 @@ combinations = np.array([
     # [90, 300],
 ])
 
+# Leader figure-eight trajectory: a discretized set of waypoints (Lissajous curve,
+# x = a*sin(s), y = a*sin(2s)/2) that the leader chases in order, advancing to the
+# next waypoint once it gets close. Chasing waypoints (rather than a point moving
+# on a fixed time schedule) keeps the traced shape correct regardless of the
+# robot's top speed (vx_max = 160 mm/s, see dynamics.py) or how sharp the turn at
+# the crossing of the "8" is.
+LEADER_TRAJ_RADIUS = 2500.0  # [mm] amplitude / "size" of the figure-8
+LEADER_TRAJ_POINTS = 72      # number of waypoints discretizing the path
+LEADER_WAYPOINT_TOL = 200.0  # [mm] distance at which the leader advances to the next waypoint
 
-leader_forward, leader_pectoral = 0.2, 0.08
-# 0.2, 0.08,
-# follower_approach = 0.8
-follower_following_a, follower_following_b = 0.1, 1 # min_speed, speed factor w.r.t relative distance 
+def _make_figure8_path(a, n):
+    s = np.linspace(0, 2*pi, n, endpoint=False)
+    x = a * np.sin(s)
+    y = (a * np.sin(2*s)) / 2.0
+    return np.stack([x, y], axis=1)
 
+LEADER_PATH = _make_figure8_path(LEADER_TRAJ_RADIUS, LEADER_TRAJ_POINTS)
 
 class Fish():
     """Bluebot instance
@@ -89,6 +122,8 @@ class Fish():
         self.pect_r = 0
         self.pect_l = 0
 
+        # index of the current waypoint on the leader's figure-8 path
+        self.wp_idx = 0
 
     def run(self, duration):
         """(1) Get neighbors from environment, (2) move accordingly, (3) update your state in environment
@@ -107,8 +142,6 @@ class Fish():
                 angle = combinations[self.id-1, 0]
                 global distance
                 distance = combinations[self.id-1, 1]
-                global pitch_range
-                pitch_range = combinations[self.id-1, 2]
             else:
                 raise ValueError("Not enough follow combinations")
             # print("Robot ID:", self.id, "Target Angle:", target_angle, "Distance:", distance)
@@ -124,18 +157,18 @@ class Fish():
         # (3) Update the environment
         self.environment.update_states(self.id, target_pos, vel)
 
-    def depth_ctrl_vision(self, r_move_g, pitch_range = 0):
+    def depth_ctrl_vision(self, r_move_g):
         """Vision-like depth control
         
         Args:
             r_move_g (np.array): Relative position of desired goal location in robot frame.
         """
-         # abs(pitch) below which dorsal fin is not controlled
+        pitch_range = 0 # abs(pitch) below which dorsal fin is not controlled
         pitch = np.arctan2(r_move_g[2], sqrt(r_move_g[0]**2 + r_move_g[1]**2)) * 180 / pi
 
-        if pitch > pitch_range + 0.1:
+        if pitch > pitch_range:
             self.dorsal = 0.1
-        elif pitch < pitch_range - 0.1:
+        elif pitch < -pitch_range:
             self.dorsal = 0
 
     def depth_ctrl_psensor(self, target_depth, dorsal_freq):
@@ -497,13 +530,35 @@ class Fish():
 
         if self.id == 0: # leader
             # print("************at leader************")
-            # magnitude = 0.2
 
-            # self.stop()
-            # self.forward(magnitude)
+            # Chase waypoints along a figure-eight (8) path in the horizontal plane.
+            # center the figure-eight around the leader's initial position
+            center = np.array([Leader_initial[0], Leader_initial[1], 250.0])
 
-            self.spin(leader_forward, leader_pectoral, True) # caudal, pect, cw
-            # self.forward(0.1)
+            current_pos = self.environment.pos[self.id,:3]
+
+            target_xy = center[0:2] + LEADER_PATH[self.wp_idx]
+            desired_global = np.array([target_xy[0], target_xy[1], center[2]])
+            diff = desired_global - current_pos
+            dist_xy = np.linalg.norm(diff[0:2])
+
+            # advance to the next waypoint once close enough (carrot-chasing)
+            if dist_xy < LEADER_WAYPOINT_TOL:
+                self.wp_idx = (self.wp_idx + 1) % len(LEADER_PATH)
+                target_xy = center[0:2] + LEADER_PATH[self.wp_idx]
+                desired_global = np.array([target_xy[0], target_xy[1], center[2]])
+                diff = desired_global - current_pos
+                dist_xy = np.linalg.norm(diff[0:2])
+
+            # rotate into robot frame
+            phi = self.environment.pos[self.id,3]
+            R = self.environment.rot_global_to_robot(phi)
+            r_move_g = R @ diff
+
+            # magnitude scaled with distance to waypoint (clamped)
+            magnitude = 0.05 + 0.7 * min(dist_xy / 1000.0, 1.0)
+
+            self.home(r_move_g, magnitude)
             self.depth_ctrl_psensor(250,0.1) # target depth, dorsal freq
 
         # elif self.id == 1 and leds.size != 0: # follower and leader can be seen 
@@ -548,7 +603,7 @@ class Fish():
                 else: 
                     # print('in zone 2: follow zone')
                     # magnitude = 0.4
-                    magnitude = follower_following_a + follower_following_b * rel_dist/approach_distance
+                    magnitude = 0.1 + 1*rel_dist/approach_distance
                     self.home(new_pos, magnitude)
             
             #######################################################################
@@ -560,7 +615,7 @@ class Fish():
 
             ########################################################################
 
-            self.depth_ctrl_vision(r_move_g, pitch_range) 
+            self.depth_ctrl_vision(r_move_g) 
             # self.depth_ctrl_psensor(500,1) # target depth, dorsal freq
 
 

@@ -80,7 +80,7 @@ v_range=2500 # visual range, [mm] # 1 to 2 m
 w_blindspot=50 # width of blindspot, [mm]
 # w_blindspot=3141 # TODO: figure out mapping mm to degrees
 r_sphere=20 # radius of blocking sphere for occlusion, [mm]
-n_magnitude=0 # visual noise magnitude, [% of distance]
+n_magnitude= 0.1 # visual noise magnitude, [% of distance], n_magnitude=0.01 means 1% of distance
 fish_specs = (v_range, w_blindspot, r_sphere, n_magnitude)
 
 # Standard Tank

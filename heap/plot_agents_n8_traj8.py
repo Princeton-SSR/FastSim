@@ -17,14 +17,15 @@ import matplotlib.pyplot as plt
 import sys
 import os
 
-# Get filename from command line argument
-try:
-    filename = sys.argv[1]
-except:
-    print('Provide prefix of data you want to plot in format yymmdd_hhmmss as command line argument, e.g.:\n >python plot_agents_clean.py 240219_213513')
-    sys.exit()
+# # Get filename from command line argument
+# try:
+#     filename = sys.argv[1]
+# except:
+#     print('Provide prefix of data you want to plot in format yymmdd_hhmmss as command line argument, e.g.:\n >python plot_agents_clean.py 240219_213513')
+#     sys.exit()
 
-# filename = '260317_170443'
+filename = '260806_122731'
+filename = '260806_145630'
 # Read data
 try:
     data = np.loadtxt('./logfiles/{}_data.txt'.format(filename), delimiter=',')
@@ -159,7 +160,7 @@ ax2.set_title('Followers Relative Position', fontsize=14)
 ax3.set(xlabel='Time (s)')
 ax3.set_title('Distance (mm)', fontsize=14)
 ax3.set_ylim([0, 2000])
-# ax3.legend()
+ax3.legend()
 
 # Configure plot 4: Bearing
 # ax4.legend()
