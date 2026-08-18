@@ -65,7 +65,7 @@ no_fish = getattr(importlib.import_module('fishfood.' + experiment_file), 'N_fis
 no_leader = 1 # default 
 no_leader = getattr(importlib.import_module('fishfood.' + experiment_file), 'N_leader', no_leader)  # overwrite if the experiment file specify
 
-simulation_time = 100 # [s]
+simulation_time = 130 # [s]
 simulation_time = getattr(importlib.import_module('fishfood.' + experiment_file), 'Simulation_time', simulation_time)  # overwrite if the experiment file specify
 # simulation_time = 0.5 # [s]
 
@@ -80,8 +80,8 @@ v_range=2500 # visual range, [mm] # 1 to 2 m
 w_blindspot=50 # width of blindspot, [mm]
 # w_blindspot=3141 # TODO: figure out mapping mm to degrees
 r_sphere=20 # radius of blocking sphere for occlusion, [mm]
-n_magnitude_leds= 0.0 # visual noise magnitude on led bearings, [% of distance], n_magnitude=0.01 means 1% of distance
-n_magnitude_pos =0 # visual noise magnitude on rel_pos/dist, [% of distance]; inert for LED-vision-based followers, but matches legacy single-n_magnitude behavior for experiments that consume rel_pos/dist directly (dispersion.py, circling.py, bv_boids.py, etc.); overridable via N_MAGNITUDE_POS env var (e.g. for sweep_n_magnitude_pos.py)
+n_magnitude_leds = float(os.environ.get('N_MAGNITUDE_LEDS', 0.1)) # visual noise magnitude on led bearings, [% of distance], n_magnitude=0.01 means 1% of distance; overridable via N_MAGNITUDE_LEDS env var (e.g. for sweep_n_magnitude_leds.py)
+n_magnitude_pos = float(os.environ.get('N_MAGNITUDE_POS', 0)) # visual noise magnitude on rel_pos/dist, [% of distance]; inert for LED-vision-based followers, but matches legacy single-n_magnitude behavior for experiments that consume rel_pos/dist directly (dispersion.py, circling.py, bv_boids.py, etc.); overridable via N_MAGNITUDE_POS env var (e.g. for sweep_n_magnitude_pos.py)
 fish_specs = (v_range, w_blindspot, r_sphere, n_magnitude_leds, n_magnitude_pos)
 
 # Standard Tank
@@ -198,5 +198,5 @@ for i_trial in range(no_trial):
     # print('| Duration: {} sec\n -'.format(round(time.time()-t_start)))
 
 # Run agent plots right after the code
-os.system(f'python plot_agents.py '+filename)
+# os.system(f'python plot_agents.py '+filename)
 # os.system(f'python plot_agents_all.py '+filename)

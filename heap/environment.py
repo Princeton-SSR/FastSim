@@ -23,8 +23,9 @@ class Environment():
         self.v_range = fish_specs[0] # visual range, [mm]
         self.w_blindspot = fish_specs[1] # width of blindspot, [mm]
         self.r_sphere = fish_specs[2] # radius of blocking sphere for occlusion, [mm]
-        self.n_magnitude = fish_specs[3] # visual noise magnitude, [% of distance]
-        print("in env, noise is", self.n_magnitude)
+        self.n_magnitude_leds = fish_specs[3] # visual noise magnitude on led bearings, [% of distance]
+        self.n_magnitude_pos = fish_specs[4] if len(fish_specs) > 4 else fish_specs[3] # visual noise magnitude on rel_pos/dist, [% of distance]
+        print("in env, noise is (leds, pos)", self.n_magnitude_leds, self.n_magnitude_pos)
         self.arena_size = arena # x, y, z
         
         # Parameters
@@ -183,7 +184,7 @@ class Environment():
 
         abs_leds = self.leds_pos
 
-        if self.n_magnitude: # no overwrites of self.rel_pos and self.dist; leds noise is baked in by calc_relative_leds
+        if self.n_magnitude_pos: # no overwrites of self.rel_pos and self.dist; leds noise is baked in by calc_relative_leds
             n_rel_pos, n_dist = self.visual_noise(source_id, rel_pos)
             return (robots, n_rel_pos, n_dist, leds, abs_leds)
 
@@ -284,10 +285,10 @@ class Environment():
         """Adds visual noise
         """
         # noise in x y z
-        magnitudes = self.n_magnitude * np.array([self.dist[source_id]]).T
+        magnitudes = self.n_magnitude_pos * np.array([self.dist[source_id]]).T
         noise_1 = magnitudes * (np.random.rand(self.no_robots, self.no_states-1) - 0.5) # zero-mean uniform noise
         # noise in head angle
-        noise_2 = self.n_magnitude * math.pi * (np.random.rand(self.no_robots, 1) - 0.5)
+        noise_2 = self.n_magnitude_pos * math.pi * (np.random.rand(self.no_robots, 1) - 0.5)
         noise = np.hstack((noise_1, noise_2))
         n_rel_pos = rel_pos + noise
         n_dist = np.linalg.norm(n_rel_pos[:,:3], axis=1) # new dist without phi
@@ -305,7 +306,7 @@ class Environment():
         noise magnitude dwarf the signal.
         """
         dist = np.linalg.norm(relative_coordinates)
-        magnitude = self.n_magnitude * dist
+        magnitude = self.n_magnitude_leds * dist
         noise = magnitude * (np.random.rand(3, 1) - 0.5)
 
         return relative_coordinates + noise
@@ -440,7 +441,7 @@ class Environment():
         for led in leds_list:
             relative_coordinates = R @ ((led - my_pos)[:, np.newaxis])
 
-            if self.n_magnitude:
+            if self.n_magnitude_leds:
                 relative_coordinates = self.visual_noise_led(relative_coordinates)
 
             # tmp = np.append(tmp, relative_coordinates, axis=1)

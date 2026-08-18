@@ -17,6 +17,7 @@ $$ python3 simulation.py dispersion
 """
 from math import *
 import numpy as np
+import os
 import time
 import warnings
 
@@ -40,7 +41,7 @@ follower_approach = 0.8
 follower_following_a, follower_following_b = 0.1, 0.2
 
 ## same plane, sapcing 200
-safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, 180, 0 # F1S
+# safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, 180, 0 # F1S
 # safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, -120, 0 # F2S
 # safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200, 90, 0 # F3S trail
 
@@ -57,7 +58,21 @@ safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 200,
 # tune speed
 # safe_distance, approach_distance, distance, angle, pitch_range = 100, 1000, 140, 180, -40 # F1B
 # follower_following_a, follower_following_b = 0.1, 0.2
-Leader_initial = [2000, -2000, 0, pi * 3/4]
+
+# The six formation configs from Fig. 4a, each (safe_distance, approach_distance, distance, angle, pitch_range).
+# Selectable via the FORMATION_CONFIG env var (e.g. for noise_sensitivity_sweep.py); defaults to F1S.
+CONFIGS = {
+    'F1S': (100, 1000, 200, 180, 0),
+    'F2S': (100, 1000, 200, -120, 0),
+    'F3S': (100, 1000, 200, 90, 0),
+    'F1B': (200, 1000, 200, 180, -40),
+    'F2B': (100, 1000, 200, -120, -40),
+    'F3B': (100, 1000, 200, 90, -40),
+}
+FORMATION_CONFIG = os.environ.get('FORMATION_CONFIG', 'F1S')
+safe_distance, approach_distance, distance, angle, pitch_range = CONFIGS[FORMATION_CONFIG]
+
+Leader_initial = [2500, -2500, 0, pi * 3/4]
 
 # Leader_initial = [2000, -1000, 0, pi * 3/4]
 Initial_spread = 500 # radius
